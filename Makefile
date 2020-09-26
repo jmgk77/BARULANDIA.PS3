@@ -116,7 +116,7 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).self
-	@rm -fr $(OUTPUT).elf $(OUTPUT).self $(OUTPUT).fake.self $(OUTPUT).pkg $(OUTPUT).gnpdrm.pkg
+	@rm -fr $(OUTPUT).elf $(OUTPUT).self $(OUTPUT).fake.self $(OUTPUT).linux.elf $(OUTPUT).pkg $(OUTPUT).gnpdrm.pkg
 
 #---------------------------------------------------------------------------------
 run:
