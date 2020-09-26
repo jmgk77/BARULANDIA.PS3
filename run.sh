@@ -1,3 +1,7 @@
 #!/bin/sh
-gcc source/barulandia.cpp source/sdl_help.cpp -lSDL -o barulandia.ps3.linux.elf
-./barulandia.ps3.linux.elf
+echo *****************************************BUILD
+make
+echo *****************************************SEND CODE
+ps3load barulandia.ps3.self
+echo *****************************************DEBUG
+netcat -l 18194
