@@ -8,6 +8,7 @@ quote user anonymous
 quote PASS password
 cd /dev_hdd0/packages
 del barulandia.ps3.pkg
+binary
 put barulandia.ps3.pkg
 quit
 END_SCRIPT

@@ -2,11 +2,6 @@
 
 #include "sdl_help.h"
 
-#define DBG_IP "192.168.0.11"
-#define DBG_PORT "18194"
-
-const int WIDTH = 1280, HEIGHT = 720;
-
 int main(int argc, char **argv) {
     dbglogger_init_str("tcp:" DBG_IP ":" DBG_PORT);
     dbglogger_log("barulandia for ps3 (c) jmgk 2020");
@@ -29,9 +24,8 @@ int main(int argc, char **argv) {
     SDL_Joystick *joystick = SDL_JoystickOpen(0);
 
     // init screen
-    SDL_Surface *screen = SDL_SetVideoMode(WIDTH, HEIGHT, 0,
-                                           SDL_SWSURFACE | SDL_DOUBLEBUF |
-                                           SDL_FULLSCREEN );
+    SDL_Surface *screen = SDL_SetVideoMode(
+                              WIDTH, HEIGHT, 0, SDL_SWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
     if (screen == NULL) {
         dbglogger_log("SDL_SetVideoMode: %s", SDL_GetError());
         return -1;
@@ -39,16 +33,15 @@ int main(int argc, char **argv) {
 
     // video info
     debug_video();
-
     // load logo
-#ifdef PNG_LOAD
-    SDL_Surface *tmp = IMG_Load("/dev_hdd0/game/SDL00BARU/LOGO.PNG");
+#ifdef LOGO_PNG
+    SDL_Surface *tmp = IMG_Load(DATA_PATH "LOGO.PNG");
     if (tmp == NULL) {
         dbglogger_log("IMG_Load: %s", SDL_GetError());
         return -1;
     }
 #else
-    SDL_Surface *tmp = SDL_LoadBMP("/dev_hdd0/game/SDL00BARU/LOGO.BMP");
+    SDL_Surface *tmp = SDL_LoadBMP(DATA_PATH "LOGO.BMP");
     if (tmp == NULL) {
         dbglogger_log("SDL_LoadBMP: %s", SDL_GetError());
         return -1;
@@ -59,41 +52,11 @@ int main(int argc, char **argv) {
     // Free the original bitmap
     SDL_FreeSurface(tmp);
 
-    // center logo in display
-    SDL_Rect r;
-    r.x = (screen->w - logo->w) / 2;
-    r.y = (screen->h - logo->h) / 2;
-    r.w = logo->w;
-    r.h = logo->h;
-
-    // Create a blank surface that is the same size as our screen
-    tmp = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_SRCALPHA, WIDTH, HEIGHT, 32,
-                               rmask, gmask, bmask, amask);
-    // Convert it to the format of the screen
-    SDL_Surface *tmp_screen = SDL_DisplayFormat(tmp);
-    // Free the created surface
-    SDL_FreeSurface(tmp);
-
-    // fade in
-    for (int alpha = 0; alpha < 255; alpha++) {
-        // Clear both the screens
-        SDL_FillRect(tmp_screen, 0,
-                     SDL_MapRGBA(tmp_screen->format, 255, 255, 255, 255));
-        SDL_FillRect(screen, 0,
-                     SDL_MapRGBA(tmp_screen->format, 255, 255, 255, 255));
-        // Draw the bitmap to the constructed vitual screen
-        SDL_BlitSurface(logo, NULL, tmp_screen, &r);
-        // Set the alpha of the constructed screen
-        SDL_SetAlpha(tmp_screen, SDL_SRCALPHA, alpha);
-        // Draw the constructed surface to the primary surface now
-        SDL_BlitSurface(tmp_screen, NULL, screen, 0);
-
-        SDL_Flip(screen);
-        SDL_Delay(20);
-    }
-    /**/
-
-    SDL_Delay(3 * 1000);
+    //fade logo in and out
+    fade_in_out(screen, logo, SDL_MapRGBA(screen->format, 255, 255, 255, 255), 0,
+                true);
+    fade_in_out(screen, logo, SDL_MapRGBA(screen->format, 255, 255, 255, 255), 0,
+                false);
 
     // blank screen
     SDL_FillRect(screen, 0, SDL_MapRGB(screen->format, 255, 0, 0));
@@ -111,6 +74,9 @@ int main(int argc, char **argv) {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
+                active = false;
+            }
+            if ((e.type == SDL_KEYDOWN) && (e.key.keysym.sym == SDLK_ESCAPE)) {
                 active = false;
             }
         }
@@ -141,9 +107,12 @@ int main(int argc, char **argv) {
 
         // screen boundaries check
         cursor_x = (cursor_x < 0) ? WIDTH : (cursor_x > WIDTH - 1) ? 0 : cursor_x;
-        cursor_y = (cursor_y < 0) ? HEIGHT - 1 : (cursor_y > HEIGHT - 1) ? 0 : cursor_y;
-        cursor2_x = (cursor2_x < 0) ? WIDTH : (cursor2_x > WIDTH - 1) ? 0 : cursor2_x;
-        cursor2_y = (cursor2_y < 0) ? HEIGHT - 1 : (cursor2_y > HEIGHT - 1) ? 0 : cursor2_y;
+        cursor_y =
+            (cursor_y < 0) ? HEIGHT - 1 : (cursor_y > HEIGHT - 1) ? 0 : cursor_y;
+        cursor2_x =
+            (cursor2_x < 0) ? WIDTH : (cursor2_x > WIDTH - 1) ? 0 : cursor2_x;
+        cursor2_y =
+            (cursor2_y < 0) ? HEIGHT - 1 : (cursor2_y > HEIGHT - 1) ? 0 : cursor2_y;
 
         // draw cursors
         SDL_LockSurface(screen);
