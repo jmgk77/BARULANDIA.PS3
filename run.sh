@@ -2,6 +2,6 @@
 echo *****************************************BUILD
 make
 echo *****************************************SEND CODE
-ps3load barulandia.ps3.self
+ps3load BARULANDIA.PS3.self
 echo *****************************************DEBUG
 netcat -l 18194

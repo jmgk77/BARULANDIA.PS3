@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+#ifdef LOGO_PNG
     // init sdl_image
     int flags = IMG_INIT_JPG | IMG_INIT_PNG;
     int initted = IMG_Init(flags);
@@ -19,6 +20,7 @@ int main(int argc, char **argv) {
         dbglogger_log("IMG_Init: %s\n", IMG_GetError());
         return -1;
     }
+#endif
 
     // init joystick
     SDL_Joystick *joystick = SDL_JoystickOpen(0);
@@ -127,7 +129,9 @@ int main(int argc, char **argv) {
 
     // cleanup
     SDL_JoystickClose(joystick);
+#ifdef LOGO_PNG
     IMG_Quit();
+#endif
     SDL_Quit();
     dbglogger_stop();
 

@@ -2,8 +2,12 @@
 
 #pragma once
 
+#define LOGO_PNG 1
+
 #include <SDL/SDL.h>
+#ifdef LOGO_PNG
 #include <SDL/SDL_image.h>
+#endif
 #ifdef PS3
 #include <dbglogger.h>
 #include <io/pad.h>
@@ -23,8 +27,6 @@
 
 #define DBG_IP "192.168.0.11"
 #define DBG_PORT "18194"
-
-//#define LOGO_PNG 1
 
 #define WIDTH 1280
 #define HEIGHT 720
