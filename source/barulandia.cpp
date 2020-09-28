@@ -5,6 +5,7 @@
 int main(int argc, char **argv) {
     dbglogger_init_str("tcp:" DBG_IP ":" DBG_PORT);
     dbglogger_log("barulandia for ps3 (c) jmgk 2020");
+    atexit(ret2psload);
 
     // init sdl
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {

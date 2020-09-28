@@ -2,7 +2,7 @@
 
 #pragma once
 
-#define LOGO_PNG 1
+//#define LOGO_PNG 1
 
 #include <SDL/SDL.h>
 #ifdef LOGO_PNG
@@ -14,6 +14,7 @@
 #include <ppu-types.h>
 #include <sysutil/msg.h>
 #include <sysutil/sysutil.h>
+#include <sys/process.h>
 #define DATA_PATH "/dev_hdd0/game/SDL00BARU/"
 #else
 #define dbglogger_init_str(x)
@@ -74,3 +75,5 @@ void debug_video();
 
 void fade_in_out(SDL_Surface *screen, SDL_Surface *image, Uint32 color,
                  int delay, bool in_out);
+
+void ret2psload();

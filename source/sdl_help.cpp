@@ -146,3 +146,8 @@ void fade_in_out(SDL_Surface *screen, SDL_Surface *image, Uint32 color,
         SDL_Delay(delay);
     }
 }
+
+
+void ret2psload() {
+    sysProcessExitSpawn2("/dev_hdd0/game/PSL145310/RELOAD.SELF", NULL, NULL, NULL, 0, 1001, SYS_PROCESS_SPAWN_STACK_SIZE_1M);
+}
