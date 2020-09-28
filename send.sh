@@ -1,5 +1,7 @@
 
 #!/bin/sh
+echo *****************************************BUILD PKG
+make pkg
 echo *****************************************SEND DATA
 ftp -n 192.168.0.4 <<END_SCRIPT
 quote user anonymous
