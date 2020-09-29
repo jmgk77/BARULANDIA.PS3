@@ -2,7 +2,7 @@
 
 #pragma once
 
-//#define LOGO_PNG 1
+#define LOGO_PNG 1
 
 #include <SDL/SDL.h>
 #ifdef LOGO_PNG

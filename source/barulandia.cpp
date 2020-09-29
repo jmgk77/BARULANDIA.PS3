@@ -36,6 +36,7 @@ int main(int argc, char **argv) {
 
     // video info
     debug_video();
+    
     // load logo
 #ifdef LOGO_PNG
     SDL_Surface *tmp = IMG_Load(DATA_PATH "LOGO.PNG");

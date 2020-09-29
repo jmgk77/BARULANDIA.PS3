@@ -112,8 +112,12 @@ void fade_in_out(SDL_Surface *screen, SDL_Surface *image, Uint32 color,
 
     // Create a blank surface that is the same size as our screen
     SDL_Surface *tmp =
-        SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_SRCALPHA, WIDTH, HEIGHT, 32,
+        SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT, 32,
                              rmask, gmask, bmask, amask);
+    if (tmp == NULL) {
+        dbglogger_log("SDL_CreateRGBSurface: %s", SDL_GetError());
+        return ;
+    }        
     // Convert it to the format of the screen
     SDL_Surface *tmp_screen = SDL_DisplayFormat(tmp);
     // Free the created surface
@@ -124,30 +128,58 @@ void fade_in_out(SDL_Surface *screen, SDL_Surface *image, Uint32 color,
         // fade in
         alpha_init = 0;
         alpha_end = 255;
-        alpha_step = 1;
+        alpha_step = 5;
     } else {
         // fade out
         alpha_init = 255;
         alpha_end = 0;
-        alpha_step = -1;
+        alpha_step = -5;
     }
+
+    //loop
     for (int alpha = alpha_init; alpha != alpha_end; alpha += alpha_step) {
+        dbglogger_printf("alpha %d", alpha);
+
         // Clear both the screens
         SDL_FillRect(tmp_screen, 0, color);
         SDL_FillRect(screen, 0, color);
-        // Draw the bitmap to the constructed vitual screen
+        // Draw the bitmap to the constructed virtual screen
         SDL_BlitSurface(image, NULL, tmp_screen, &r);
+#ifdef PS3
+        SDL_LockSurface(tmp_screen);
+
+        //get data
+        int bpp = tmp_screen->format->BytesPerPixel;
+        int pitch_padding = (tmp_screen->pitch - (bpp * tmp_screen->w));
+        Uint8 * pixels = (Uint8 *)tmp_screen->pixels;
+        // Big Endian will have an offset of 0, otherwise it's 3 (R, G and B)
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+        pixels += 3;
+#endif
+
+        for (unsigned int row = 0; row < tmp_screen->h; ++row) {
+            for (unsigned int col = 0; col < tmp_screen->w; ++col) {
+                *pixels = (Uint8)alpha;
+                pixels += bpp;
+            }
+            pixels += pitch_padding;
+        }
+        SDL_UnlockSurface(tmp_screen);
+#else
         // Set the alpha of the constructed screen
         SDL_SetAlpha(tmp_screen, SDL_SRCALPHA, alpha);
+        SDL_Delay(delay);
+#endif
         // Draw the constructed surface to the primary surface now
         SDL_BlitSurface(tmp_screen, NULL, screen, 0);
 
         SDL_Flip(screen);
-        SDL_Delay(delay);
     }
 }
 
 
 void ret2psload() {
+#ifdef PS3
     sysProcessExitSpawn2("/dev_hdd0/game/PSL145310/RELOAD.SELF", NULL, NULL, NULL, 0, 1001, SYS_PROCESS_SPAWN_STACK_SIZE_1M);
+#endif
 }
