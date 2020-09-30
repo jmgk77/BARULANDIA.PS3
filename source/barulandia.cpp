@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-#ifdef LOGO_PNG
+#ifdef USE_PNG
     // init sdl_image
     int flags = IMG_INIT_JPG | IMG_INIT_PNG;
     int initted = IMG_Init(flags);
@@ -35,10 +35,10 @@ int main(int argc, char **argv) {
     }
 
     // video info
-    debug_video();
-    
+    //debug_video();
+
     // load logo
-#ifdef LOGO_PNG
+#ifdef USE_PNG
     SDL_Surface *tmp = IMG_Load(DATA_PATH "LOGO.PNG");
     if (tmp == NULL) {
         dbglogger_log("IMG_Load: %s", SDL_GetError());
@@ -56,11 +56,12 @@ int main(int argc, char **argv) {
     // Free the original bitmap
     SDL_FreeSurface(tmp);
 
-    //fade logo in and out
-    fade_in_out(screen, logo, SDL_MapRGBA(screen->format, 255, 255, 255, 255), 0,
-                true);
-    fade_in_out(screen, logo, SDL_MapRGBA(screen->format, 255, 255, 255, 255), 0,
-                false);
+    // fade logo in and out
+    fade_in_out(screen, logo, true);
+    fade_in_out(screen, logo, false);
+    SDL_FreeSurface(logo);
+
+    SDL_Delay(1000 * 3);
 
     // blank screen
     SDL_FillRect(screen, 0, SDL_MapRGB(screen->format, 255, 0, 0));
@@ -131,7 +132,7 @@ int main(int argc, char **argv) {
 
     // cleanup
     SDL_JoystickClose(joystick);
-#ifdef LOGO_PNG
+#ifdef USE_PNG
     IMG_Quit();
 #endif
     SDL_Quit();

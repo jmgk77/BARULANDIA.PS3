@@ -2,19 +2,19 @@
 
 #pragma once
 
-#define LOGO_PNG 1
+#define USE_PNG 1
 
 #include <SDL/SDL.h>
-#ifdef LOGO_PNG
+#ifdef USE_PNG
 #include <SDL/SDL_image.h>
 #endif
 #ifdef PS3
 #include <dbglogger.h>
 #include <io/pad.h>
 #include <ppu-types.h>
+#include <sys/process.h>
 #include <sysutil/msg.h>
 #include <sysutil/sysutil.h>
-#include <sys/process.h>
 #define DATA_PATH "/dev_hdd0/game/SDL00BARU/"
 #else
 #define dbglogger_init_str(x)
@@ -73,7 +73,6 @@ Uint32 GetPixel32_nolock(SDL_Surface *surface, int x, int y);
 void debug_joystick(SDL_Joystick *joystick);
 void debug_video();
 
-void fade_in_out(SDL_Surface *screen, SDL_Surface *image, Uint32 color,
-                 int delay, bool in_out);
+void fade_in_out(SDL_Surface *screen, SDL_Surface *image, bool in_out);
 
 void ret2psload();
