@@ -1,36 +1,6 @@
-// barulandia for ps3 (c) jmgk 2020
-
 #pragma once
 
-#define USE_PNG 1
-
-#include <SDL/SDL.h>
-#ifdef USE_PNG
-#include <SDL/SDL_image.h>
-#endif
-#ifdef PS3
-#include <dbglogger.h>
-#include <io/pad.h>
-#include <ppu-types.h>
-#include <sys/process.h>
-#include <sysutil/msg.h>
-#include <sysutil/sysutil.h>
-#define DATA_PATH "/dev_hdd0/game/SDL00BARU/"
-#else
-#define dbglogger_init_str(x)
-#define dbglogger_stop(x)
-#define dbglogger_log printf
-#define dbglogger_printf printf
-#undef SDL_FULLSCREEN
-#define SDL_FULLSCREEN 0
-#define DATA_PATH "../release/"
-#endif
-
-#define DBG_IP "192.168.0.11"
-#define DBG_PORT "18194"
-
-#define WIDTH 1280
-#define HEIGHT 720
+#include "barulandia.h"
 
 #define SDL_CONTROLLER_AXIS_LEFTX 0
 #define SDL_CONTROLLER_AXIS_LEFTY 1
@@ -69,10 +39,3 @@
 
 void PutPixel32_nolock(SDL_Surface *surface, int x, int y, Uint32 color);
 Uint32 GetPixel32_nolock(SDL_Surface *surface, int x, int y);
-
-void debug_joystick(SDL_Joystick *joystick);
-void debug_video();
-
-void fade_in_out(SDL_Surface *screen, SDL_Surface *image, bool in_out);
-
-void ret2psload();

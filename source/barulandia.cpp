@@ -1,10 +1,10 @@
-// barulandia for ps3 (c) jmgk 2020
+#include "barulandia.h"
 
-#include "sdl_help.h"
+
 
 int main(int argc, char **argv) {
   dbglogger_init_str("tcp:" DBG_IP ":" DBG_PORT);
-  dbglogger_log("barulandia for ps3 (c) jmgk 2020");
+  dbglogger_log("BARULANDIA for ps3 (c) jmgk 2020");
   atexit(ret2psload);
 
   // init sdl
@@ -38,23 +38,7 @@ int main(int argc, char **argv) {
   debug_video();
 
   // load logo
-#ifdef USE_PNG
-  SDL_Surface *tmp = IMG_Load(DATA_PATH "LOGO.PNG");
-  if (tmp == NULL) {
-    dbglogger_log("IMG_Load: %s", SDL_GetError());
-    return -1;
-  }
-#else
-  SDL_Surface *tmp = SDL_LoadBMP(DATA_PATH "LOGO.BMP");
-  if (tmp == NULL) {
-    dbglogger_log("SDL_LoadBMP: %s", SDL_GetError());
-    return -1;
-  }
-#endif
-  // Convert the logo to optimal display format
-  SDL_Surface *logo = SDL_DisplayFormat(tmp);
-  // Free the original bitmap
-  SDL_FreeSurface(tmp);
+  SDL_Surface *logo = load_resource(DATA_PATH "LOGO.PNG");
 
   // fade logo in and out
   fade_in_out(screen, logo, true);
