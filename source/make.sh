@@ -1,6 +1,7 @@
 #!/bin/sh
 rm a.out
-gcc -O2 -Wall \
+#gcc -O2 -Wall -g \
+gcc -Wall -g \
 barulandia.cpp \
 debug.cpp \
 sdl_help.cpp \

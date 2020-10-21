@@ -18,7 +18,7 @@ SDL_Surface *load_resource(const char *filename) {
   }
 #endif
   // Convert the logo to optimal display format
-  SDL_Surface *surface = SDL_DisplayFormat(tmp);
+  SDL_Surface *surface = SDL_DisplayFormatAlpha(tmp);
   // Free the original bitmap
   SDL_FreeSurface(tmp);
   return surface;
@@ -91,7 +91,7 @@ void fade_in_out(SDL_Surface *screen, SDL_Surface *image, bool in_out) {
     SDL_UnlockSurface(tmp_screen);
 #else
     // Set the alpha of the constructed screen
-    SDL_SetAlpha(tmp_screen, SDL_SRCALPHA, alpha);
+    SDL_SetAlpha(tmp_screen, SDL_SRCALPHA, alpha*3);
     SDL_Delay(50);
 #endif
     // Draw the constructed surface to the primary surface now
