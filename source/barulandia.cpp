@@ -28,6 +28,13 @@ int main(int argc, char **argv) {
   // init joystick
   SDL_Joystick *joystick = SDL_JoystickOpen(0);
 
+  // joystick button state
+  bool joystick_buttonstate[JOYBUTTONS];
+  bool joystick_oldbuttonstate[JOYBUTTONS];
+  for (int i = 0; i < JOYBUTTONS; ++i) {
+    joystick_oldbuttonstate[i] = joystick_buttonstate[i] = false;
+  }
+
   // init screen
   SDL_Surface *screen = SDL_SetVideoMode(
       WIDTH, HEIGHT, 0, SDL_SWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
@@ -158,6 +165,7 @@ int main(int argc, char **argv) {
 
   while (active) {
 
+#ifndef PS3
     // handle sdl events
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
@@ -167,11 +175,10 @@ int main(int argc, char **argv) {
       case SDL_QUIT:
         active = false;
         break;
-#ifndef PS3
         // handle keypresses for linux
       case SDL_KEYDOWN:
-        // dbglogger_printf("SDL_KEYDOWN: %s\n",
-        // SDL_GetKeyName(e.key.keysym.sym));
+        /*dbglogger_printf("SDL_KEYDOWN:
+         * %s\n",SDL_GetKeyName(e.key.keysym.sym));*/
         if (e.key.keysym.sym == SDLK_ESCAPE) {
           active = false;
         }
@@ -196,7 +203,7 @@ int main(int argc, char **argv) {
         }
         break;
       case SDL_KEYUP:
-        // dbglogger_printf("SDL_UP: %s\n", SDL_GetKeyName(e.key.keysym.sym));
+        /*dbglogger_printf("SDL_UP: %s\n", SDL_GetKeyName(e.key.keysym.sym));*/
         switch (e.key.keysym.sym) {
         case SDLK_LEFT:
           if (dx < 0) {
@@ -235,63 +242,47 @@ int main(int argc, char **argv) {
           break;
         }
         break;
-#endif
       default:
         break;
       }
     }
 
-#ifndef PS3
     cursor_x += dx;
     cursor_y += dy;
 #endif
 
 #ifdef PS3
     // handle joystick for PS3
-    bool l1_active = false;
-    bool r1_active = false;
-
     if (joystick) {
       SDL_JoystickUpdate();
+      /*debug_joystick(joystick);*/
+      for (int i = 0; i < JOYBUTTONS; ++i) {
+        joystick_oldbuttonstate[i] = joystick_buttonstate[i];
+        joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
+      }
 
-      // debug_joystick(joystick);
+#define BUTTON_CHANGE(x)                                                       \
+  if (joystick_oldbuttonstate[x] != joystick_buttonstate[x])
+#define BUTTON_PRESSED(x)                                                      \
+  if (!joystick_oldbuttonstate[x] && joystick_buttonstate[x])
+#define BUTTON_RELEASED(x)                                                     \
+  if (joystick_oldbuttonstate[x] && !joystick_buttonstate[x])
 
       // exit
-      if (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_START) ==
-          SDL_PRESSED) {
-        active = false;
-      }
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) active = false;
 
-      // change current drawing (L1 - R1)
-      if (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_L1) ==
-          SDL_PRESSED) {
-        l1_active = true;
-      dbglogger_log("l1_active = true");
-      }
-      if (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_R1) ==
-          SDL_PRESSED) {
-        r1_active = true;
-      dbglogger_log("r1_active = true");
-      }
-      if (l1_active &&
-          (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_L1) ==
-           SDL_RELEASED)) {
-        draw_current--;
-        if (draw_current < 0) {
-          draw_current = MAX_DRAW - 1;
+      // change drawing
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_L1) {
+        draw_new--;
+        if (draw_new < 0) {
+          draw_new = MAX_DRAW - 1;
         }
-        l1_active = false;
-      dbglogger_log("l1_active = false");
       }
-      if (r1_active &&
-          (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_R1) ==
-           SDL_RELEASED)) {
-        draw_current++;
-        if (draw_current == MAX_DRAW) {
-          draw_current = 0;
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_R1) {
+        draw_new++;
+        if (draw_new == MAX_DRAW) {
+          draw_new = 0;
         }
-        r1_active = false;
-      dbglogger_log("r1_active = false");
       }
 
       // update cursor (joystick L)
@@ -310,7 +301,6 @@ int main(int argc, char **argv) {
 
     // change current drawing
     if (draw_current != draw_new) {
-
       draw_current = draw_new;
 
       if (draw) {
@@ -319,6 +309,8 @@ int main(int argc, char **argv) {
 
       char buf[128];
       snprintf(buf, 128, "%sDRAW%d%s", DATA_PATH, draw_current + 1, GRAPH_EXT);
+      dbglogger_log("LOADING: %s", buf);
+
       draw = load_resource(buf);
 
       // set position

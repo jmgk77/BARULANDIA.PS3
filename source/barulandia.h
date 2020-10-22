@@ -5,10 +5,12 @@
 
 #define GRAPH_EXT ".BMP"
 
-#define SKIP_INTRO 1
-#define SKIP_STARTSCREEN 1
+//#define SKIP_INTRO 1
+//#define SKIP_STARTSCREEN 1
 
 #define MAX_DRAW 10
+
+#define JOYBUTTONS 16
 
 #include <SDL/SDL.h>
 
