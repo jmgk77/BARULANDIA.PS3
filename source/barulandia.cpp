@@ -37,29 +37,30 @@ int main(int argc, char **argv) {
   }
 
   // video info
-  debug_video();
+  /*debug_video();*/
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   // load logo
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
-  SDL_Surface *logo = load_resource(DATA_PATH "LOGO.PNG");
+#ifndef SKIP_INTRO
+  SDL_Surface *logo = load_resource(DATA_PATH "LOGO" GRAPH_EXT);
 
   // fade logo in and out
   fade_in_out(screen, logo, true);
   fade_in_out(screen, logo, false);
   SDL_FreeSurface(logo);
-
+#endif
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   // load start screen
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
-
-  SDL_Surface *fundo = load_resource(DATA_PATH "FUNDO.PNG");
-  SDL_Surface *titulo = load_resource(DATA_PATH "TITULO.PNG");
-  SDL_Surface *start = load_resource(DATA_PATH "START.PNG");
+#ifndef SKIP_STARTSCREEN
+  SDL_Surface *fundo = load_resource(DATA_PATH "FUNDO" GRAPH_EXT);
+  SDL_Surface *titulo = load_resource(DATA_PATH "TITULO" GRAPH_EXT);
+  SDL_Surface *start = load_resource(DATA_PATH "START" GRAPH_EXT);
 
   // fade start screen in
   fade_in_out(screen, fundo, true);
@@ -128,74 +129,217 @@ int main(int argc, char **argv) {
     SDL_Delay(10);
   }
 
+  SDL_FreeSurface(fundo);
+  SDL_FreeSurface(titulo);
+  SDL_FreeSurface(start);
+#endif
+
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   // main loop
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
-
-  // blank screen
-  SDL_FillRect(screen, 0, SDL_MapRGB(screen->format, 255, 0, 0));
 
   // init cursors
   int cursor_x = WIDTH / 2;
   int cursor_y = HEIGHT / 2;
-  int cursor2_x = WIDTH / 2;
-  int cursor2_y = HEIGHT / 2;
+
+  int draw_current = -1;
+  int draw_new = 0;
 
   // main loop
   bool active = true;
+  int dx = 0;
+  int dy = 0;
+
+  // load resources
+  SDL_Surface *field = load_resource(DATA_PATH "FIELD" GRAPH_EXT);
+  SDL_Surface *draw = NULL;
+
   while (active) {
+
     // handle sdl events
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
-      if (e.type == SDL_QUIT) {
+
+      switch (e.type) {
+
+      case SDL_QUIT:
         active = false;
-      }
-      if ((e.type == SDL_KEYDOWN) && (e.key.keysym.sym == SDLK_ESCAPE)) {
-        active = false;
+        break;
+#ifndef PS3
+        // handle keypresses for linux
+      case SDL_KEYDOWN:
+        // dbglogger_printf("SDL_KEYDOWN: %s\n",
+        // SDL_GetKeyName(e.key.keysym.sym));
+        if (e.key.keysym.sym == SDLK_ESCAPE) {
+          active = false;
+        }
+        switch (e.key.keysym.sym) {
+        case SDLK_ESCAPE:
+          active = false;
+          break;
+        case SDLK_LEFT:
+          dx = -1;
+          break;
+        case SDLK_RIGHT:
+          dx = 1;
+          break;
+        case SDLK_UP:
+          dy = -1;
+          break;
+        case SDLK_DOWN:
+          dy = 1;
+          break;
+        default:
+          break;
+        }
+        break;
+      case SDL_KEYUP:
+        // dbglogger_printf("SDL_UP: %s\n", SDL_GetKeyName(e.key.keysym.sym));
+        switch (e.key.keysym.sym) {
+        case SDLK_LEFT:
+          if (dx < 0) {
+            dx = 0;
+          }
+          break;
+        case SDLK_RIGHT:
+          if (dx > 0) {
+            dx = 0;
+          }
+          break;
+        case SDLK_UP:
+          if (dy < 0) {
+            dy = 0;
+          }
+          break;
+        case SDLK_DOWN:
+          if (dy > 0) {
+            dy = 0;
+          }
+          break;
+        case SDLK_LCTRL:
+          draw_new--;
+          if (draw_new < 0) {
+            draw_new = MAX_DRAW - 1;
+          }
+          break;
+        case SDLK_RCTRL:
+          draw_new++;
+          if (draw_new == MAX_DRAW) {
+            draw_new = 0;
+          }
+          break;
+
+        default:
+          break;
+        }
+        break;
+#endif
+      default:
+        break;
       }
     }
 
-    // handle joystick
+#ifndef PS3
+    cursor_x += dx;
+    cursor_y += dy;
+#endif
+
+#ifdef PS3
+    // handle joystick for PS3
+    bool l1_active = false;
+    bool r1_active = false;
+
     if (joystick) {
       SDL_JoystickUpdate();
 
       // debug_joystick(joystick);
 
+      // exit
       if (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_START) ==
           SDL_PRESSED) {
         active = false;
       }
 
-      int dx, dy;
+      // change current drawing (L1 - R1)
+      if (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_L1) ==
+          SDL_PRESSED) {
+        l1_active = true;
+      dbglogger_log("l1_active = true");
+      }
+      if (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_R1) ==
+          SDL_PRESSED) {
+        r1_active = true;
+      dbglogger_log("r1_active = true");
+      }
+      if (l1_active &&
+          (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_L1) ==
+           SDL_RELEASED)) {
+        draw_current--;
+        if (draw_current < 0) {
+          draw_current = MAX_DRAW - 1;
+        }
+        l1_active = false;
+      dbglogger_log("l1_active = false");
+      }
+      if (r1_active &&
+          (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_R1) ==
+           SDL_RELEASED)) {
+        draw_current++;
+        if (draw_current == MAX_DRAW) {
+          draw_current = 0;
+        }
+        r1_active = false;
+      dbglogger_log("r1_active = false");
+      }
+
       // update cursor (joystick L)
       dx = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
       cursor_x += (dx > AXIS_DEADZONE) ? 1 : (dx < -AXIS_DEADZONE) ? -1 : 0;
       dy = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
       cursor_y += (dy > AXIS_DEADZONE) ? 1 : (dy < -AXIS_DEADZONE) ? -1 : 0;
-      // update cursor (joystick R)
-      dx = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_RIGHTX);
-      cursor2_x += (dx > AXIS_DEADZONE) ? 1 : (dx < -AXIS_DEADZONE) ? -1 : 0;
-      dy = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_RIGHTY);
-      cursor2_y += (dy > AXIS_DEADZONE) ? 1 : (dy < -AXIS_DEADZONE) ? -1 : 0;
     }
+#endif
 
     // screen boundaries check
-    cursor_x = (cursor_x < 0) ? WIDTH : (cursor_x > WIDTH - 1) ? 0 : cursor_x;
+    cursor_x =
+        (cursor_x < 0) ? 0 : (cursor_x >= WIDTH - 1) ? WIDTH - 1 : cursor_x;
     cursor_y =
-        (cursor_y < 0) ? HEIGHT - 1 : (cursor_y > HEIGHT - 1) ? 0 : cursor_y;
-    cursor2_x =
-        (cursor2_x < 0) ? WIDTH : (cursor2_x > WIDTH - 1) ? 0 : cursor2_x;
-    cursor2_y =
-        (cursor2_y < 0) ? HEIGHT - 1 : (cursor2_y > HEIGHT - 1) ? 0 : cursor2_y;
+        (cursor_y < 0) ? 0 : (cursor_y >= HEIGHT - 1) ? HEIGHT - 1 : cursor_y;
+
+    // change current drawing
+    if (draw_current != draw_new) {
+
+      draw_current = draw_new;
+
+      if (draw) {
+        SDL_FreeSurface(draw);
+      }
+
+      char buf[128];
+      snprintf(buf, 128, "%sDRAW%d%s", DATA_PATH, draw_current + 1, GRAPH_EXT);
+      draw = load_resource(buf);
+
+      // set position
+      SDL_Rect d_pos;
+      d_pos.x = (screen->w - draw->w) / 2;
+      d_pos.y = 0;
+      d_pos.w = draw->w;
+      d_pos.h = draw->h;
+
+      // paste field
+      SDL_BlitSurface(field, NULL, screen, NULL);
+      // paste new drawing in position
+      SDL_BlitSurface(draw, NULL, screen, &d_pos);
+      //***null cursor save
+      SDL_Flip(screen);
+    }
 
     // draw cursors
     SDL_LockSurface(screen);
     PutPixel32_nolock(screen, cursor_x, cursor_y,
-                      SDL_MapRGB(screen->format, 0, 0, 255));
-    PutPixel32_nolock(screen, cursor2_x, cursor2_y,
-                      SDL_MapRGB(screen->format, 0, 255, 0));
+                      SDL_MapRGB(screen->format, 255, 0, 0));
     SDL_UnlockSurface(screen);
 
     SDL_Flip(screen);

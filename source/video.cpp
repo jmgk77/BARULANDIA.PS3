@@ -7,13 +7,13 @@ SDL_Surface *load_resource(const char *filename) {
 #ifdef USE_PNG
   tmp = IMG_Load(filename);
   if (tmp == NULL) {
-    dbglogger_log("IMG_Load: %s", SDL_GetError());
+    dbglogger_log("IMG_Load(%s): %s", filename, SDL_GetError());
     return NULL;
   }
 #else
   tmp = SDL_LoadBMP(filename);
   if (tmp == NULL) {
-    dbglogger_log("SDL_LoadBMP: %s", SDL_GetError());
+    dbglogger_log("SDL_LoadBMP(%s): %s", filename, SDL_GetError());
     return NULL;
   }
 #endif
