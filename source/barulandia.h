@@ -1,16 +1,19 @@
 #pragma once
 
-//#define USE_PNG 1
-//#define GRAPH_EXT ".PNG"
+#define USE_PNG 1
 
-#define GRAPH_EXT ".BMP"
-
-//#define SKIP_INTRO 1
-//#define SKIP_STARTSCREEN 1
+#define SKIP_INTRO 1
+#define SKIP_STARTSCREEN 1
 
 #define MAX_DRAW 10
 
 #define JOYBUTTONS 16
+
+#ifdef USE_PNG
+#define GRAPH_EXT ".PNG"
+#else
+#define GRAPH_EXT ".BMP"
+#endif
 
 #include <SDL/SDL.h>
 

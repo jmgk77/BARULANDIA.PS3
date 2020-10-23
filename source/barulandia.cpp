@@ -143,6 +143,24 @@ int main(int argc, char **argv) {
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
+  // click control
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+#define CURSOR_AREA(x1, y1, x2, y2)                                            \
+  if ((cursor_x > x1) && (cursor_y > y1) && (cursor_x < x2) && (cursor_y < y2))
+
+#define CLICK_AREA                                                             \
+  CURSOR_AREA(172, 17, 322, 147) { draw_new--; }                               \
+  CURSOR_AREA(955, 17, 1110, 147) { draw_new++; }                              \
+  CURSOR_AREA(172, 565, 322, 707) { draw_refresh = true; }                     \
+  CURSOR_AREA(172, 408, 322, 538) { dbglogger_log("eraser tool"); }            \
+  CURSOR_AREA(955, 408, 1110, 538) { dbglogger_log("paint tool"); }            \
+  CURSOR_AREA(1140, 15, 1270, 705) { dbglogger_log("color picker"); }          \
+  CURSOR_AREA(353, 1, 927, 719) { dbglogger_log("paint"); }
+
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   // main loop
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -151,8 +169,10 @@ int main(int argc, char **argv) {
   int cursor_x = WIDTH / 2;
   int cursor_y = HEIGHT / 2;
 
-  int draw_current = -1;
+  // draw control
+  int draw_current = 0;
   int draw_new = 0;
+  bool draw_refresh = true;
 
   // main loop
   bool active = true;
@@ -179,13 +199,11 @@ int main(int argc, char **argv) {
       case SDL_KEYDOWN:
         /*dbglogger_printf("SDL_KEYDOWN:
          * %s\n",SDL_GetKeyName(e.key.keysym.sym));*/
-        if (e.key.keysym.sym == SDLK_ESCAPE) {
-          active = false;
-        }
         switch (e.key.keysym.sym) {
         case SDLK_ESCAPE:
           active = false;
           break;
+        // keydown only for continuous input (movement)
         case SDLK_LEFT:
           dx = -1;
           break;
@@ -198,6 +216,7 @@ int main(int argc, char **argv) {
         case SDLK_DOWN:
           dy = 1;
           break;
+        ////
         default:
           break;
         }
@@ -205,6 +224,7 @@ int main(int argc, char **argv) {
       case SDL_KEYUP:
         /*dbglogger_printf("SDL_UP: %s\n", SDL_GetKeyName(e.key.keysym.sym));*/
         switch (e.key.keysym.sym) {
+          // cut keydown (movement)
         case SDLK_LEFT:
           if (dx < 0) {
             dx = 0;
@@ -225,17 +245,17 @@ int main(int argc, char **argv) {
             dy = 0;
           }
           break;
+          ////
+        // L1 & R1
         case SDLK_LCTRL:
           draw_new--;
-          if (draw_new < 0) {
-            draw_new = MAX_DRAW - 1;
-          }
           break;
         case SDLK_RCTRL:
           draw_new++;
-          if (draw_new == MAX_DRAW) {
-            draw_new = 0;
-          }
+          break;
+          // X
+        case SDLK_SPACE:
+          CLICK_AREA
           break;
 
         default:
@@ -284,6 +304,7 @@ int main(int argc, char **argv) {
           draw_new = 0;
         }
       }
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS){CLICK_AREA}
 
       // update cursor (joystick L)
       dx = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
@@ -293,15 +314,20 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    // screen boundaries check
+    // nextdraw boundaries check (circle)
+    draw_new =
+        (draw_new < 0) ? (MAX_DRAW - 1) : (draw_new == MAX_DRAW) ? 0 : draw_new;
+
+    // screen boundaries check (limit)
     cursor_x =
         (cursor_x < 0) ? 0 : (cursor_x >= WIDTH - 1) ? WIDTH - 1 : cursor_x;
     cursor_y =
         (cursor_y < 0) ? 0 : (cursor_y >= HEIGHT - 1) ? HEIGHT - 1 : cursor_y;
 
-    // change current drawing
-    if (draw_current != draw_new) {
+    // change/reload current drawing
+    if ((draw_current != draw_new) || (draw_refresh)) {
       draw_current = draw_new;
+      draw_refresh = false;
 
       if (draw) {
         SDL_FreeSurface(draw);
