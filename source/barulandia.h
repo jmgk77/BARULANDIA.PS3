@@ -42,3 +42,4 @@
 #include "debug.h"
 #include "sdl_help.h"
 #include "video.h"
+#include "floodfill.h"

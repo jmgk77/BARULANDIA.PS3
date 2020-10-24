@@ -6,4 +6,5 @@ barulandia.cpp \
 debug.cpp \
 sdl_help.cpp \
 video.cpp \
+floodfill.cpp \
  -lSDL -lSDL_image

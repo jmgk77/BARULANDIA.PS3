@@ -151,13 +151,21 @@ int main(int argc, char **argv) {
   if ((cursor_x > x1) && (cursor_y > y1) && (cursor_x < x2) && (cursor_y < y2))
 
 #define CLICK_AREA                                                             \
-  CURSOR_AREA(172, 17, 322, 147) { draw_new--; }                               \
-  CURSOR_AREA(955, 17, 1110, 147) { draw_new++; }                              \
-  CURSOR_AREA(172, 565, 322, 707) { draw_refresh = true; }                     \
-  CURSOR_AREA(172, 408, 322, 538) { dbglogger_log("eraser tool"); }            \
-  CURSOR_AREA(955, 408, 1110, 538) { dbglogger_log("paint tool"); }            \
-  CURSOR_AREA(1140, 15, 1270, 705) { dbglogger_log("color picker"); }          \
-  CURSOR_AREA(353, 1, 927, 719) { dbglogger_log("paint"); }
+  CURSOR_AREA(172, 17, 322, 147) { draw_new--; }           /*prev draw*/       \
+  CURSOR_AREA(955, 17, 1110, 147) { draw_new++; }          /*next draw*/       \
+  CURSOR_AREA(172, 565, 322, 707) { draw_refresh = true; } /*refresh draw*/    \
+  CURSOR_AREA(172, 408, 322, 538) {                        /*eraser*/          \
+    new_color = SDL_MapRGBA(screen->format, 255, 255, 255, 255);               \
+  }                                                                            \
+  CURSOR_AREA(955, 408, 1110, 538) {} /*paint tool*/                           \
+  CURSOR_AREA(1140, 15, 1270, 705) {  /*color picker*/                         \
+    /* ***restore cursor*/                                                         \
+    new_color = GetPixel32_nolock(screen, cursor_x, cursor_y);                 \
+    /* ***draw cursor*/                                                            \
+  }                                                                            \
+  CURSOR_AREA(353, 1, 927, 719) { /*paint*/                                    \
+    floodfill(cursor_x, cursor_y, current_color);                              \
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -178,6 +186,10 @@ int main(int argc, char **argv) {
   bool active = true;
   int dx = 0;
   int dy = 0;
+
+  // colors (default green)
+  Uint32 current_color = 0;
+  Uint32 new_color = SDL_MapRGBA(screen->format, 0, 255, 0, 255);
 
   // load resources
   SDL_Surface *field = load_resource(DATA_PATH "FIELD" GRAPH_EXT);
@@ -324,6 +336,12 @@ int main(int argc, char **argv) {
     cursor_y =
         (cursor_y < 0) ? 0 : (cursor_y >= HEIGHT - 1) ? HEIGHT - 1 : cursor_y;
 
+    // change current color
+    if (current_color != new_color) {
+      current_color = new_color;
+      floodfill(1000, 650, new_color);
+    }
+
     // change/reload current drawing
     if ((draw_current != draw_new) || (draw_refresh)) {
       draw_current = draw_new;
@@ -350,12 +368,14 @@ int main(int argc, char **argv) {
       SDL_BlitSurface(field, NULL, screen, NULL);
       // paste new drawing in position
       SDL_BlitSurface(draw, NULL, screen, &d_pos);
-      //***null cursor save
+      //***reload cursor save
       SDL_Flip(screen);
     }
 
     // draw cursors
     SDL_LockSurface(screen);
+    //***save cursor save
+    // draw cursor
     PutPixel32_nolock(screen, cursor_x, cursor_y,
                       SDL_MapRGB(screen->format, 255, 0, 0));
     SDL_UnlockSurface(screen);
