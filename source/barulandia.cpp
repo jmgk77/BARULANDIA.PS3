@@ -159,12 +159,13 @@ int main(int argc, char **argv) {
   }                                                                            \
   CURSOR_AREA(955, 408, 1110, 538) {} /*paint tool*/                           \
   CURSOR_AREA(1140, 15, 1270, 705) {  /*color picker*/                         \
-    /* ***restore cursor*/                                                         \
-    new_color = GetPixel32_nolock(screen, cursor_x, cursor_y);                 \
-    /* ***draw cursor*/                                                            \
+    new_color = under_cursor_color;                                            \
   }                                                                            \
   CURSOR_AREA(353, 1, 927, 719) { /*paint*/                                    \
-    floodfill(cursor_x, cursor_y, current_color);                              \
+    /* ***restore cursor*/                                                     \
+    floodfill(screen, cursor_x, cursor_y, current_color);                      \
+    /* ***draw cursor*/                                                        \
+    under_cursor_color = current_color;                                        \
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -176,6 +177,9 @@ int main(int argc, char **argv) {
   // init cursors
   int cursor_x = WIDTH / 2;
   int cursor_y = HEIGHT / 2;
+  int old_cursor_x;
+  int old_cursor_y;
+  //***save cursor area
 
   // draw control
   int draw_current = 0;
@@ -188,7 +192,8 @@ int main(int argc, char **argv) {
   int dy = 0;
 
   // colors (default green)
-  Uint32 current_color = 0;
+  Uint32 current_color = -1;
+  Uint32 under_cursor_color = -1;
   Uint32 new_color = SDL_MapRGBA(screen->format, 0, 255, 0, 255);
 
   // load resources
@@ -196,6 +201,9 @@ int main(int argc, char **argv) {
   SDL_Surface *draw = NULL;
 
   while (active) {
+
+    old_cursor_x = cursor_x;
+    old_cursor_y = cursor_y;
 
 #ifndef PS3
     // handle sdl events
@@ -339,7 +347,7 @@ int main(int argc, char **argv) {
     // change current color
     if (current_color != new_color) {
       current_color = new_color;
-      floodfill(1000, 650, new_color);
+      floodfill(screen, 1000, 650, new_color);
     }
 
     // change/reload current drawing
@@ -374,12 +382,18 @@ int main(int argc, char **argv) {
 
     // draw cursors
     SDL_LockSurface(screen);
-    //***save cursor save
-    // draw cursor
+
+    // *** restore cursor
+    PutPixel32_nolock(screen, old_cursor_x, old_cursor_y, under_cursor_color);
+    // save
+    under_cursor_color = GetPixel32_nolock(screen, cursor_x, cursor_y);
+
+    // *** draw cursor
     PutPixel32_nolock(screen, cursor_x, cursor_y,
-                      SDL_MapRGB(screen->format, 255, 0, 0));
+                      SDL_MapRGBA(screen->format, 255, 0, 0, 255));
     SDL_UnlockSurface(screen);
 
+    // render
     SDL_Flip(screen);
   }
 

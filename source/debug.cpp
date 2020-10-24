@@ -1,7 +1,5 @@
 #include "debug.h"
 
-
-
 void debug_joystick(SDL_Joystick *joystick) {
   dbglogger_log("LX %d LY %d RX %d RY %d",
                 SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX),
@@ -28,8 +26,6 @@ void debug_joystick(SDL_Joystick *joystick) {
   LOG_BTN(SDL_CONTROLLER_BUTTON_R2);
   LOG_BTN(SDL_CONTROLLER_BUTTON_L2);
 }
-
-
 
 void debug_video() {
   const SDL_VideoInfo *vinfo = SDL_GetVideoInfo();
@@ -90,8 +86,6 @@ void debug_video() {
                    vinfo->vfmt->alpha);
 #endif
 }
-
-
 
 void ret2psload() {
 #ifdef PS3

@@ -40,6 +40,6 @@
 #define HEIGHT 720
 
 #include "debug.h"
+#include "floodfill.h"
 #include "sdl_help.h"
 #include "video.h"
-#include "floodfill.h"

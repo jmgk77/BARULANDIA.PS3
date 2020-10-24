@@ -1,7 +1,5 @@
 #include "video.h"
 
-
-
 SDL_Surface *load_resource(const char *filename) {
   SDL_Surface *tmp;
 #ifdef USE_PNG
@@ -23,8 +21,6 @@ SDL_Surface *load_resource(const char *filename) {
   SDL_FreeSurface(tmp);
   return surface;
 }
-
-
 
 void fade_in_out(SDL_Surface *screen, SDL_Surface *image, bool in_out) {
   // center image in display
@@ -91,7 +87,7 @@ void fade_in_out(SDL_Surface *screen, SDL_Surface *image, bool in_out) {
     SDL_UnlockSurface(tmp_screen);
 #else
     // Set the alpha of the constructed screen
-    SDL_SetAlpha(tmp_screen, SDL_SRCALPHA, alpha*3);
+    SDL_SetAlpha(tmp_screen, SDL_SRCALPHA, alpha * 3);
     SDL_Delay(50);
 #endif
     // Draw the constructed surface to the primary surface now
