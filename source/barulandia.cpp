@@ -131,6 +131,7 @@ int main(int argc, char **argv) {
     // paste start button
     SDL_BlitSurface(start, NULL, screen, &s_pos);
 
+    //render
     SDL_Flip(screen);
 
     SDL_Delay(10);
@@ -139,6 +140,10 @@ int main(int argc, char **argv) {
   SDL_FreeSurface(fundo);
   SDL_FreeSurface(titulo);
   SDL_FreeSurface(start);
+
+  // black screen
+  SDL_FillRect(screen, NULL, SDL_MapRGBA(screen->format, 0, 0, 0, 255));
+  SDL_Flip(screen);
 #endif
 
   /////////////////////////////////////////////////////////////////////////////
@@ -162,9 +167,16 @@ int main(int argc, char **argv) {
     new_color = under_cursor_color;                                            \
   }                                                                            \
   CURSOR_AREA(353, 1, 927, 719) { /*paint*/                                    \
-    /* ***restore cursor*/                                                     \
+    /*restore content under cursor*/                                           \
+    SDL_Rect c_pos;                                                            \
+    c_pos.x = old_cursor_x;                                                    \
+    c_pos.y = old_cursor_y;                                                    \
+    c_pos.w = old_cursor->w;                                                   \
+    c_pos.h = old_cursor->h;                                                   \
+    SDL_BlitSurface(old_cursor, NULL, screen, &c_pos);                         \
     floodfill(screen, cursor_x, cursor_y, current_color);                      \
-    /* ***draw cursor*/                                                        \
+    /* save content under cursor*/                                             \
+    SDL_BlitSurface(screen, &c_pos, old_cursor, NULL);                         \
     under_cursor_color = current_color;                                        \
   }
 
@@ -174,12 +186,13 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
-  // init cursors
+  // init cursor
   int cursor_x = WIDTH / 2;
   int cursor_y = HEIGHT / 2;
   int old_cursor_x;
   int old_cursor_y;
-  //***save cursor area
+  SDL_Surface *cursor = load_resource(DATA_PATH "CURSOR" GRAPH_EXT);
+  SDL_Surface *old_cursor = load_resource(DATA_PATH "CURSOR" GRAPH_EXT);
 
   // draw control
   int draw_current = 0;
@@ -374,24 +387,48 @@ int main(int argc, char **argv) {
 
       // paste field
       SDL_BlitSurface(field, NULL, screen, NULL);
+
       // paste new drawing in position
       SDL_BlitSurface(draw, NULL, screen, &d_pos);
-      //***reload cursor save
+
+      // save content under cursor
+      SDL_Rect c_pos;
+      c_pos.x = old_cursor_x;
+      c_pos.y = old_cursor_y;
+      c_pos.w = old_cursor->w;
+      c_pos.h = old_cursor->h;
+      SDL_BlitSurface(screen, &c_pos, old_cursor, NULL);
+
+      // render
       SDL_Flip(screen);
     }
 
-    // draw cursors
+    // restore content under cursor
+    SDL_Rect c_pos;
+    c_pos.x = old_cursor_x;
+    c_pos.y = old_cursor_y;
+    c_pos.w = old_cursor->w;
+    c_pos.h = old_cursor->h;
+    SDL_BlitSurface(old_cursor, NULL, screen, &c_pos);
+
+    // save color under cursor
     SDL_LockSurface(screen);
-
-    // *** restore cursor
-    PutPixel32_nolock(screen, old_cursor_x, old_cursor_y, under_cursor_color);
-    // save
     under_cursor_color = GetPixel32_nolock(screen, cursor_x, cursor_y);
-
-    // *** draw cursor
-    PutPixel32_nolock(screen, cursor_x, cursor_y,
-                      SDL_MapRGBA(screen->format, 255, 0, 0, 255));
     SDL_UnlockSurface(screen);
+
+    // save content under cursor
+    c_pos.x = cursor_x;
+    c_pos.y = cursor_y;
+    c_pos.w = old_cursor->w;
+    c_pos.h = old_cursor->h;
+    SDL_BlitSurface(screen, &c_pos, old_cursor, NULL);
+
+    // draw cursors
+    c_pos.x = cursor_x;
+    c_pos.y = cursor_y;
+    c_pos.w = cursor->w;
+    c_pos.h = cursor->h;
+    SDL_BlitSurface(cursor, NULL, screen, &c_pos);
 
     // render
     SDL_Flip(screen);

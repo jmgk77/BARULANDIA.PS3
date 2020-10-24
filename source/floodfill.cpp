@@ -14,7 +14,7 @@
 //  5. Return.
 //
 void _floodfill(SDL_Surface *screen, int x, int y, Uint32 color) {
-  int c;
+  Uint32 c;
 
   c = GetPixel32_nolock(screen, x, y);
   if (c == color)
