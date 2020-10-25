@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   }
 
   // video info
-  /*debug_video();*/
+  debug_video();
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
     // paste start button
     SDL_BlitSurface(start, NULL, screen, &s_pos);
 
-    //render
+    // render
     SDL_Flip(screen);
 
     SDL_Delay(10);
@@ -164,18 +164,19 @@ int main(int argc, char **argv) {
   }                                                                            \
   CURSOR_AREA(955, 408, 1110, 538) {} /*paint tool*/                           \
   CURSOR_AREA(1140, 15, 1270, 705) {  /*color picker*/                         \
-    new_color = under_cursor_color;                                            \
+    if (under_cursor_color != SDL_MapRGBA(screen->format, 0, 0, 0, 255)) {     \
+      new_color = under_cursor_color;                                          \
+    }                                                                          \
   }                                                                            \
-  CURSOR_AREA(353, 1, 927, 719) { /*paint*/                                    \
-    /*restore content under cursor*/                                           \
+  CURSOR_AREA(353, 1, 927, 719) { /*paint*/ /*restore content under cursor*/   \
     SDL_Rect c_pos;                                                            \
     c_pos.x = old_cursor_x;                                                    \
     c_pos.y = old_cursor_y;                                                    \
     c_pos.w = old_cursor->w;                                                   \
     c_pos.h = old_cursor->h;                                                   \
     SDL_BlitSurface(old_cursor, NULL, screen, &c_pos);                         \
-    floodfill(screen, cursor_x, cursor_y, current_color);                      \
-    /* save content under cursor*/                                             \
+    floodfill(screen, cursor_x, cursor_y,                                      \
+              current_color); /* save content under cursor*/                   \
     SDL_BlitSurface(screen, &c_pos, old_cursor, NULL);                         \
     under_cursor_color = current_color;                                        \
   }
@@ -357,12 +358,6 @@ int main(int argc, char **argv) {
     cursor_y =
         (cursor_y < 0) ? 0 : (cursor_y >= HEIGHT - 1) ? HEIGHT - 1 : cursor_y;
 
-    // change current color
-    if (current_color != new_color) {
-      current_color = new_color;
-      floodfill(screen, 1000, 650, new_color);
-    }
-
     // change/reload current drawing
     if ((draw_current != draw_new) || (draw_refresh)) {
       draw_current = draw_new;
@@ -374,7 +369,6 @@ int main(int argc, char **argv) {
 
       char buf[128];
       snprintf(buf, 128, "%sDRAW%d%s", DATA_PATH, draw_current + 1, GRAPH_EXT);
-      dbglogger_log("LOADING: %s", buf);
 
       draw = load_resource(buf);
 
@@ -399,8 +393,14 @@ int main(int argc, char **argv) {
       c_pos.h = old_cursor->h;
       SDL_BlitSurface(screen, &c_pos, old_cursor, NULL);
 
-      // render
-      SDL_Flip(screen);
+      // redo color picker sample
+      current_color = -1;
+    }
+
+    // change current color
+    if (current_color != new_color) {
+      current_color = new_color;
+      floodfill(screen, 1000, 650, new_color);
     }
 
     // restore content under cursor

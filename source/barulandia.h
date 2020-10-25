@@ -2,8 +2,8 @@
 
 #define USE_PNG 1
 
-#define SKIP_INTRO 1
-#define SKIP_STARTSCREEN 1
+//#define SKIP_INTRO 1
+//#define SKIP_STARTSCREEN 1
 
 #define MAX_DRAW 10
 
@@ -43,3 +43,6 @@
 #include "floodfill.h"
 #include "sdl_help.h"
 #include "video.h"
+#include <queue>
+
+using namespace std;
