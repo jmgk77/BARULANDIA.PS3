@@ -32,8 +32,8 @@ void fade_in_out(SDL_Surface *screen, SDL_Surface *image, bool in_out) {
   r.h = image->h;
 
   // Create a blank surface that is the same size as our screen
-  SDL_Surface *tmp = SDL_CreateRGBSurface(SDL_SWSURFACE, WIDTH, HEIGHT, 32,
-                                          rmask, gmask, bmask, amask);
+  SDL_Surface *tmp = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h,
+                                          32, rmask, gmask, bmask, amask);
   if (tmp == NULL) {
     dbglogger_log("SDL_CreateRGBSurface: %s", SDL_GetError());
     return;
@@ -79,7 +79,7 @@ void fade_in_out(SDL_Surface *screen, SDL_Surface *image, bool in_out) {
       for (int col = 0; col < tmp_screen->w; ++col) {
         // apply only on non-white (check only r channel)
         if (*(pixels + 1) != 0xff) {
-          *pixels = (Uint8)alpha;
+          *pixels = (Uint8)alpha * 3;
         }
         pixels += bpp;
       }

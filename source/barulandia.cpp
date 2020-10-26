@@ -188,8 +188,8 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
 
   // init cursor
-  int cursor_x = WIDTH / 2;
-  int cursor_y = HEIGHT / 2;
+  int cursor_x = screen->w / 2;
+  int cursor_y = screen->h / 2;
   int old_cursor_x;
   int old_cursor_y;
   SDL_Surface *cursor = load_resource(DATA_PATH "CURSOR" GRAPH_EXT);
@@ -204,6 +204,7 @@ int main(int argc, char **argv) {
   bool active = true;
   int dx = 0;
   int dy = 0;
+  int accell = 0;
 
   // colors (default green)
   Uint32 current_color = -1;
@@ -338,13 +339,27 @@ int main(int argc, char **argv) {
           draw_new = 0;
         }
       }
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS){CLICK_AREA}
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) { CLICK_AREA }
 
       // update cursor (joystick L)
-      dx = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
-      cursor_x += (dx > AXIS_DEADZONE) ? 1 : (dx < -AXIS_DEADZONE) ? -1 : 0;
-      dy = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
-      cursor_y += (dy > AXIS_DEADZONE) ? 1 : (dy < -AXIS_DEADZONE) ? -1 : 0;
+      int _x = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
+      int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
+      dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
+      dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
+      if (!dx && !dy) {
+        accell = 0;
+      } else {
+        accell++;
+      }
+
+      // limit acceleration
+      if (accell > 60) {
+        accell = 60;
+      }
+
+      // accelerate cursor
+      cursor_x += dx + (dx * (accell / 10));
+      cursor_y += dy + (dy * (accell / 10));
     }
 #endif
 
@@ -353,10 +368,12 @@ int main(int argc, char **argv) {
         (draw_new < 0) ? (MAX_DRAW - 1) : (draw_new == MAX_DRAW) ? 0 : draw_new;
 
     // screen boundaries check (limit)
-    cursor_x =
-        (cursor_x < 0) ? 0 : (cursor_x >= WIDTH - 1) ? WIDTH - 1 : cursor_x;
-    cursor_y =
-        (cursor_y < 0) ? 0 : (cursor_y >= HEIGHT - 1) ? HEIGHT - 1 : cursor_y;
+    cursor_x = (cursor_x < 0)
+                   ? 0
+                   : (cursor_x >= screen->w - 1) ? (screen->w - 1) : cursor_x;
+    cursor_y = (cursor_y < 0)
+                   ? 0
+                   : (cursor_y >= screen->h - 1) ? (screen->h - 1) : cursor_y;
 
     // change/reload current drawing
     if ((draw_current != draw_new) || (draw_refresh)) {
