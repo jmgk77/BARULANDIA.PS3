@@ -56,6 +56,7 @@ int main(int argc, char **argv) {
 
   // fade logo in and out
   fade_in_out(screen, logo, true);
+  dbglogger_screenshot_tmp(255);
   fade_in_out(screen, logo, false);
   SDL_FreeSurface(logo);
 #endif
@@ -103,6 +104,7 @@ int main(int argc, char **argv) {
       }
       if ((e.type == SDL_KEYDOWN) && (e.key.keysym.sym == SDLK_ESCAPE)) {
         start_active = false;
+        dbglogger_screenshot_tmp(255);
       }
     }
 
@@ -111,6 +113,7 @@ int main(int argc, char **argv) {
       if (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_START) ==
           SDL_PRESSED) {
         start_active = false;
+        dbglogger_screenshot_tmp(255);
       }
     }
 
@@ -156,8 +159,11 @@ int main(int argc, char **argv) {
   if ((cursor_x > x1) && (cursor_y > y1) && (cursor_x < x2) && (cursor_y < y2))
 
 #define CLICK_AREA                                                             \
-  CURSOR_AREA(172, 17, 322, 147) { draw_new--; }           /*prev draw*/       \
-  CURSOR_AREA(955, 17, 1110, 147) { draw_new++; }          /*next draw*/       \
+  CURSOR_AREA(172, 17, 322, 147) { draw_new--; } /*prev draw*/                 \
+  CURSOR_AREA(955, 17, 1110, 147) {              /*next draw*/                 \
+    draw_new++;                                                                \
+    dbglogger_screenshot_tmp(255);                                             \
+  }                                                                            \
   CURSOR_AREA(172, 565, 322, 707) { draw_refresh = true; } /*refresh draw*/    \
   CURSOR_AREA(172, 408, 322, 538) {                        /*eraser*/          \
     new_color = SDL_MapRGBA(screen->format, 255, 255, 255, 255);               \
@@ -287,6 +293,7 @@ int main(int argc, char **argv) {
           break;
         case SDLK_RCTRL:
           draw_new++;
+          dbglogger_screenshot_tmp(255);
           break;
           // X
         case SDLK_SPACE:
