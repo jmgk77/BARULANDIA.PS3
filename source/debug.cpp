@@ -28,63 +28,181 @@ void debug_joystick(SDL_Joystick *joystick) {
 }
 
 void debug_video() {
-  const SDL_VideoInfo *vinfo = SDL_GetVideoInfo();
-  /*
-     typedef struct{
-     Uint32 hw_available:1;
-     Uint32 wm_available:1;
-     Uint32 blit_hw:1;
-     Uint32 blit_hw_CC:1;
-     Uint32 blit_hw_A:1;
-     Uint32 blit_sw:1;
-     Uint32 blit_sw_CC:1;
-     Uint32 blit_sw_A:1;
-     Uint32 blit_fill;
-     Uint32 video_mem;
-     SDL_PixelFormat *vfmt;
-     } SDL_VideoInfo;
-   */
-  dbglogger_printf("<<SDL_VideoInfo>>\nhw_available\t%d\nwm_available\t%"
-                   "d\nblit_hw\t\t%d\nblit_hw_"
-                   "CC\t%d\nblit_hw_A\t%d\n",
-                   vinfo->hw_available, vinfo->wm_available, vinfo->blit_hw,
-                   vinfo->blit_hw_CC, vinfo->blit_hw_A);
-  dbglogger_printf(
-      "blit_sw\t\t%d\nblit_sw_CC\t%d\nblit_sw_A\t%d\nblit_fill\t%d\nvideo_"
-      "mem\t0x%x\n",
-      vinfo->blit_sw, vinfo->blit_sw_CC, vinfo->blit_sw_A, vinfo->blit_fill,
-      vinfo->video_mem);
-  /*
-     typedef struct SDL_PixelFormat {
-     SDL_Palette *palette;
-     Uint8  BitsPerPixel;
-     Uint8  BytesPerPixel;
-     Uint8  Rloss, Gloss, Bloss, Aloss;
-     Uint8  Rshift, Gshift, Bshift, Ashift;
-     Uint32 Rmask, Gmask, Bmask, Amask;
-     Uint32 colorkey;
-     Uint8  alpha;
-     } SDL_PixelFormat;
-   */
-  dbglogger_printf("<<SDL_PixelFormat>>\npalette\t\t0x%x\n",
-                   vinfo->vfmt->palette);
-  dbglogger_printf(
-      "BitsPerPixel\t0x%x\nBytesPerPixel\t0x%x\nRloss\t\t0x%x\nGloss\t\t0x%"
-      "x\nBloss\t\t0x%x\nAloss\t\t0x%x\n",
-      vinfo->vfmt->BitsPerPixel, vinfo->vfmt->BytesPerPixel, vinfo->vfmt->Rloss,
-      vinfo->vfmt->Gloss, vinfo->vfmt->Bloss, vinfo->vfmt->Aloss);
-  dbglogger_printf(
-      "Rmask\t\t0x%x\nGmask\t\t0x%x\nBmask\t\t0x%x\nAmask\t\t0x%x\n",
-      vinfo->vfmt->Rshift, vinfo->vfmt->Gshift, vinfo->vfmt->Bshift,
-      vinfo->vfmt->Ashift);
-  dbglogger_printf(
-      "Rmask\t\t0x%x\nGmask\t\t0x%x\nBmask\t\t0x%x\nAmask\t\t0x%x\n",
-      vinfo->vfmt->Rmask, vinfo->vfmt->Gmask, vinfo->vfmt->Bmask,
-      vinfo->vfmt->Amask);
-#ifndef PS3
-  dbglogger_printf("colorkey\t0x%x\nalpha\t\t0x%x\n", vinfo->vfmt->colorkey,
-                   vinfo->vfmt->alpha);
-#endif
+  dbglogger_printf("\n");
+  int nbDriver = SDL_GetNumRenderDrivers();
+
+  for (int i = 0; i < nbDriver; i++) {
+    SDL_RendererInfo info;
+    SDL_GetRenderDriverInfo(i, &info);
+    dbglogger_printf(
+        "DRIVER [%d] %s (0x%04x): %s %s %s %s\n", i,
+        info.name ? info.name : "Invalid driver", info.flags,
+        (info.flags & SDL_RENDERER_SOFTWARE) ? "software" : "",
+        (info.flags & SDL_RENDERER_ACCELERATED) ? "accelerated" : "",
+        (info.flags & SDL_RENDERER_PRESENTVSYNC) ? "vsync" : "",
+        (info.flags & SDL_RENDERER_TARGETTEXTURE) ? "texture_target" : "");
+
+    dbglogger_printf("\tAVAILABLE TEXTURE FORMATS: %d\n",
+                     info.num_texture_formats);
+    for (Uint32 t = 0; t < info.num_texture_formats; t++) {
+      int tf = info.texture_formats[t];
+
+      const char *s;
+      switch (SDL_PIXELTYPE(tf)) {
+      case SDL_PIXELTYPE_UNKNOWN:
+        s = "SDL_PIXELTYPE_UNKNOWN";
+        break;
+      case SDL_PIXELTYPE_INDEX1:
+        s = "SDL_PIXELTYPE_INDEX1";
+        break;
+      case SDL_PIXELTYPE_INDEX4:
+        s = "SDL_PIXELTYPE_INDEX4";
+        break;
+      case SDL_PIXELTYPE_INDEX8:
+        s = "SDL_PIXELTYPE_INDEX8";
+        break;
+      case SDL_PIXELTYPE_PACKED8:
+        s = "SDL_PIXELTYPE_PACKED8";
+        break;
+      case SDL_PIXELTYPE_PACKED16:
+        s = "SDL_PIXELTYPE_PACKED16";
+        break;
+      case SDL_PIXELTYPE_PACKED32:
+        s = "SDL_PIXELTYPE_PACKED32";
+        break;
+      case SDL_PIXELTYPE_ARRAYU8:
+        s = "SDL_PIXELTYPE_ARRAYU8";
+        break;
+      case SDL_PIXELTYPE_ARRAYU16:
+        s = "SDL_PIXELTYPE_ARRAYU16";
+        break;
+      case SDL_PIXELTYPE_ARRAYU32:
+        s = "SDL_PIXELTYPE_ARRAYU32";
+        break;
+      case SDL_PIXELTYPE_ARRAYF16:
+        s = "SDL_PIXELTYPE_ARRAYF16";
+        break;
+      case SDL_PIXELTYPE_ARRAYF32:
+        s = "SDL_PIXELTYPE_ARRAYF32";
+        break;
+      default:
+        s = "ERROR";
+        break;
+      }
+      dbglogger_printf("[%d]\tSDL_PIXELTYPE: %s\n", t, s);
+
+      switch (SDL_PIXELORDER(tf)) {
+      case SDL_BITMAPORDER_NONE:
+        s = "SDL_BITMAPORDER_NONE";
+        break;
+      case SDL_BITMAPORDER_4321:
+        s = "SDL_BITMAPORDER_4321";
+        break;
+      case SDL_BITMAPORDER_1234:
+        s = "SDL_BITMAPORDER_1234";
+        break;
+
+        /* case SDL_PACKEDORDER_NONE:
+           s1 = "SDL_PACKEDORDER_NONE";
+           break;
+         case SDL_PACKEDORDER_XRGB:
+           s1 = "SDL_PACKEDORDER_XRGB";
+           break;
+         case SDL_PACKEDORDER_RGBX:
+           s1 = "SDL_PACKEDORDER_RGBX";
+           break;*/
+      case SDL_PACKEDORDER_ARGB:
+        s = "SDL_PACKEDORDER_ARGB";
+        break;
+      case SDL_PACKEDORDER_RGBA:
+        s = "SDL_PACKEDORDER_RGBA";
+        break;
+      case SDL_PACKEDORDER_XBGR:
+        s = "SDL_PACKEDORDER_XBGR";
+        break;
+      case SDL_PACKEDORDER_BGRX:
+        s = "SDL_PACKEDORDER_BGRX";
+        break;
+      case SDL_PACKEDORDER_ABGR:
+        s = "SDL_PACKEDORDER_ABGR";
+        break;
+      case SDL_PACKEDORDER_BGRA:
+        s = "SDL_PACKEDORDER_BGRA";
+        break;
+
+      /*case SDL_ARRAYORDER_NONE:
+        s2 = "SDL_ARRAYORDER_NONE";
+        break;
+      case SDL_ARRAYORDER_RGB:
+        s2 = "SDL_ARRAYORDER_RGB";
+        break;
+      case SDL_ARRAYORDER_RGBA:
+        s2 = "SDL_ARRAYORDER_RGBA";
+        break;
+      case SDL_ARRAYORDER_ARGB:
+        s2 = "SDL_ARRAYORDER_ARGB";
+        break;
+      case SDL_ARRAYORDER_BGR:
+        s2 = "SDL_ARRAYORDER_BGR";
+        break;
+      case SDL_ARRAYORDER_BGRA:
+        s2 = "SDL_ARRAYORDER_BGRA";
+        break;
+      case SDL_ARRAYORDER_ABGR:
+        s2 = "SDL_ARRAYORDER_ABGR";
+        break;*/
+      default:
+        s = "ERROR";
+        break;
+      }
+      dbglogger_printf("\tSDL_PIXELORDER: %s\n", s);
+
+      switch (SDL_PIXELLAYOUT(tf)) {
+
+      case SDL_PACKEDLAYOUT_NONE:
+        s = "SDL_PACKEDLAYOUT_NONE";
+        break;
+      case SDL_PACKEDLAYOUT_332:
+        s = "SDL_PACKEDLAYOUT_332";
+        break;
+      case SDL_PACKEDLAYOUT_4444:
+        s = "SDL_PACKEDLAYOUT_4444";
+        break;
+      case SDL_PACKEDLAYOUT_1555:
+        s = "SDL_PACKEDLAYOUT_1555";
+        break;
+      case SDL_PACKEDLAYOUT_5551:
+        s = "SDL_PACKEDLAYOUT_5551";
+        break;
+      case SDL_PACKEDLAYOUT_565:
+        s = "SDL_PACKEDLAYOUT_565";
+        break;
+      case SDL_PACKEDLAYOUT_8888:
+        s = "SDL_PACKEDLAYOUT_8888";
+        break;
+      case SDL_PACKEDLAYOUT_2101010:
+        s = "SDL_PACKEDLAYOUT_2101010";
+        break;
+      case SDL_PACKEDLAYOUT_1010102:
+        s = "SDL_PACKEDLAYOUT_1010102";
+        break;
+      default:
+        s = "ERROR";
+        break;
+      }
+      dbglogger_printf("\tSDL_PIXELLAYOUT: %s\n", s);
+
+      dbglogger_printf("\tBITS(%d) BYTES(%d)\n", SDL_BITSPERPIXEL(tf),
+                       SDL_BYTESPERPIXEL(tf));
+
+      dbglogger_printf("\tHAVE PALETTE: %s\n",
+                       SDL_ISPIXELFORMAT_INDEXED(tf) ? "TRUE" : "FALSE");
+      dbglogger_printf("\tHAVE ALPHA: %s\n",
+                       SDL_ISPIXELFORMAT_ALPHA(tf) ? "TRUE" : "FALSE");
+      dbglogger_printf("\tUNIQUE FORMAT: %s\n",
+                       SDL_ISPIXELFORMAT_FOURCC(tf) ? "TRUE" : "FALSE");
+    }
+  }
 }
 
 void ret2psload() {

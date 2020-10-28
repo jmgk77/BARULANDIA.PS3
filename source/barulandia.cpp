@@ -36,14 +36,33 @@ int main(int argc, char **argv) {
   }
 
   // init screen
-  SDL_Surface *screen = SDL_SetVideoMode(
-      WIDTH, HEIGHT, 0, SDL_SWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
-  if (screen == NULL) {
-    dbglogger_log("SDL_SetVideoMode: %s", SDL_GetError());
+  SDL_Window *window = SDL_CreateWindow(
+      "BARULANDIA.PS3", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH,
+      HEIGHT, SDL_WINDOW_FULLSCREEN_DESKTOP);
+  if (window == NULL) {
+    // In the case that the window could not be made...
+    dbglogger_log("SDL_CreateWindow: %s\n", SDL_GetError());
+    return 1;
+  }
+  SDL_Renderer *renderer =
+      SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+  if (renderer == NULL) {
+    dbglogger_log("SDL_CreateRenderer: %s", SDL_GetError());
     return -1;
   }
 
-  // video info
+  if (window == NULL) {
+    // In the case that the window could not be made...
+    dbglogger_log("SDL_CreateWindow: %s\n", SDL_GetError());
+    return 1;
+  }
+
+  if (renderer == NULL) {
+    dbglogger_log("SDL_CreateRenderer: %s", SDL_GetError());
+    return -1;
+  }
+
+  // print info
   debug_video();
 
   /////////////////////////////////////////////////////////////////////////////
@@ -52,13 +71,14 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 #ifndef SKIP_INTRO
-  SDL_Surface *logo = load_resource(DATA_PATH "LOGO" GRAPH_EXT);
+  SDL_Texture *logo = load_resource(renderer, DATA_PATH "LOGO" GRAPH_EXT);
 
   // fade logo in and out
-  fade_in_out(screen, logo, true);
-  dbglogger_screenshot_tmp(255);
-  fade_in_out(screen, logo, false);
-  SDL_FreeSurface(logo);
+  fade_in_out(renderer, logo, true);
+  fade_in_out(renderer, logo, false);
+
+  // free logo
+  SDL_DestroyTexture(logo);
 #endif
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -66,9 +86,9 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 #ifndef SKIP_STARTSCREEN
-  SDL_Surface *fundo = load_resource(DATA_PATH "FUNDO" GRAPH_EXT);
-  SDL_Surface *titulo = load_resource(DATA_PATH "TITULO" GRAPH_EXT);
-  SDL_Surface *start = load_resource(DATA_PATH "START" GRAPH_EXT);
+  SDL_Surface *fundo = load_resource(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
+  SDL_Surface *titulo = load_resource(renderer, DATA_PATH "TITULO" GRAPH_EXT);
+  SDL_Surface *start = load_resource(renderer, DATA_PATH "START" GRAPH_EXT);
 
   // fade start screen in
   fade_in_out(screen, fundo, true);
@@ -135,18 +155,21 @@ int main(int argc, char **argv) {
     SDL_BlitSurface(start, NULL, screen, &s_pos);
 
     // render
-    SDL_Flip(screen);
+    SDL_UpdateTexture(sdlTexture, NULL, screen->pixels, screen->pitch);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
+    SDL_RenderPresent(renderer);
 
     SDL_Delay(10);
   }
 
-  SDL_FreeSurface(fundo);
-  SDL_FreeSurface(titulo);
-  SDL_FreeSurface(start);
+  SDL_DestroyTexture(fundo);
+  SDL_DestroyTexture(titulo);
+  SDL_DestroyTexture(start);
 
   // black screen
   SDL_FillRect(screen, NULL, SDL_MapRGBA(screen->format, 0, 0, 0, 255));
-  SDL_Flip(screen);
+  SDL_RenderPresent(renderer);
 #endif
 
   /////////////////////////////////////////////////////////////////////////////
@@ -192,14 +215,15 @@ int main(int argc, char **argv) {
   // main loop
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
-
+#ifndef SKIP_MAIN
   // init cursor
   int cursor_x = screen->w / 2;
   int cursor_y = screen->h / 2;
   int old_cursor_x;
   int old_cursor_y;
-  SDL_Surface *cursor = load_resource(DATA_PATH "CURSOR" GRAPH_EXT);
-  SDL_Surface *old_cursor = load_resource(DATA_PATH "CURSOR" GRAPH_EXT);
+  SDL_Surface *cursor = load_resource(renderer, DATA_PATH "CURSOR" GRAPH_EXT);
+  SDL_Surface *old_cursor =
+      load_resource(renderer, DATA_PATH "CURSOR" GRAPH_EXT);
 
   // draw control
   int draw_current = 0;
@@ -218,7 +242,7 @@ int main(int argc, char **argv) {
   Uint32 new_color = SDL_MapRGBA(screen->format, 0, 255, 0, 255);
 
   // load resources
-  SDL_Surface *field = load_resource(DATA_PATH "FIELD" GRAPH_EXT);
+  SDL_Surface *field = load_resource(renderer, DATA_PATH "FIELD" GRAPH_EXT);
   SDL_Surface *draw = NULL;
 
   while (active) {
@@ -388,7 +412,7 @@ int main(int argc, char **argv) {
       draw_refresh = false;
 
       if (draw) {
-        SDL_FreeSurface(draw);
+        SDL_DestroyTexture(draw);
       }
 
       char buf[128];
@@ -455,9 +479,12 @@ int main(int argc, char **argv) {
     SDL_BlitSurface(cursor, NULL, screen, &c_pos);
 
     // render
-    SDL_Flip(screen);
+    SDL_UpdateTexture(sdlTexture, NULL, screen->pixels, screen->pitch);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
+    SDL_RenderPresent(renderer);
   }
-
+#endif
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   // cleanup

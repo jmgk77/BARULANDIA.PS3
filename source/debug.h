@@ -10,10 +10,7 @@
 #define dbglogger_stop(x)
 #define dbglogger_log printf
 #define dbglogger_printf printf
-#define dbglogger_screenshot_tmp(x)                                            \
-  char file[128];                                                              \
-  snprintf(file, sizeof(file), "%8d.BMP", rand());                             \
-  SDL_SaveBMP(screen, file);
+#define dbglogger_screenshot_tmp(x)
 #endif
 
 void debug_joystick(SDL_Joystick *joystick);

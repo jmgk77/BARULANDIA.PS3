@@ -3,7 +3,8 @@
 #define USE_PNG 1
 
 //#define SKIP_INTRO 1
-//#define SKIP_STARTSCREEN 1
+#define SKIP_STARTSCREEN 1
+#define SKIP_MAIN
 
 #define MAX_DRAW 10
 
@@ -15,10 +16,10 @@
 #define GRAPH_EXT ".BMP"
 #endif
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #ifdef USE_PNG
-#include <SDL/SDL_image.h>
+#include <SDL2/SDL_image.h>
 #endif
 
 #ifdef PS3
