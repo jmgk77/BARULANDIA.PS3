@@ -26,7 +26,7 @@ SFOXML		:=	$(CURDIR)/stuff/sfo.xml
 PKGFILES	:=	$(CURDIR)/release
 
 TITLE		:=	Barulandia
-APPID		:=	SDL00BARU
+APPID		:=	SDL20BARU
 CONTENTID	:=	UP0001-$(APPID)_00-0000000000000000
 
 #---------------------------------------------------------------------------------
@@ -34,17 +34,17 @@ CONTENTID	:=	UP0001-$(APPID)_00-0000000000000000
 #---------------------------------------------------------------------------------
 
 CFLAGS		=	-O2 -Wall -mcpu=cell $(MACHDEP) $(INCLUDE) -DPS3
-CXXFLAGS	=	$(CFLAGS) 
+CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS		=	$(MACHDEP) -Wl,-Map,$(notdir $@).map
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	 -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lpngdec -lpng -ljpeg -ljpgdec  -lvorbisfile -lvorbis -logg -laudio -lmikmod \
-			 -ltiff -lm -lfreetype -lz -lpixman-1 -lSDLmain -lrsx -lgcm_sys -lio -lsysutil -lrt -llv2 -lm  -lSDL_gfx -lSDL -lSDL_image \
-			 -lSDL_mixer -lSDL_ttf -lpngdec -lpng -ljpeg -ljpgdec  -lvorbisfile -lvorbis -logg -laudio -lmikmod -ltiff -lm -lfreetype \
-			 -lz -lpixman-1 -lSDLmain -lrsx -lgcm_sys -lio -lsysutil -lrt -llv2 -lm  -lSDL_gfx -ldbglogger -lnet -lhttputil -lsysmodule
+LIBS	:=	 -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lpngdec -lpng -ljpeg -ljpgdec  -lvorbisfile -lvorbis -logg -laudio -lmikmod \
+			 -ltiff -lm -lfreetype -lz -lpixman-1 -lSDL2main -lrsx -lgcm_sys -lio -lsysutil -lrt -llv2 -lm  -lSDL2_gfx -lSDL2 -lSDL2_image \
+			 -lSDL2_mixer -lSDL2_ttf -lpngdec -lpng -ljpeg -ljpgdec  -lvorbisfile -lvorbis -logg -laudio -lmikmod -ltiff -lm -lfreetype \
+			 -lz -lpixman-1 -lSDL2main -lrsx -lgcm_sys -lio -lsysutil -lrt -llv2 -lm  -lSDL2_gfx -ldbglogger -lnet -lhttputil -lsysmodule
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

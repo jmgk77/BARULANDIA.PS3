@@ -7,4 +7,5 @@ debug.cpp \
 sdl_help.cpp \
 video.cpp \
 floodfill.cpp \
- -lSDL -lSDL_image -lstdc++
+`sdl2-config --cflags --libs` \
+ -lSDL2 -lSDL2_image -lstdc++

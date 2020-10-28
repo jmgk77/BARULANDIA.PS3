@@ -3,3 +3,4 @@
 *.pkg
 build/
 a.out
+*.txt
