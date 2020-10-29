@@ -37,8 +37,8 @@ int main(int argc, char **argv) {
 
   // init screen
   SDL_Window *window = SDL_CreateWindow(
-      "BARULANDIA.PS3", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH,
-      HEIGHT, SDL_WINDOW_FULLSCREEN_DESKTOP);
+      "BARULANDIA.PS3", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0,
+      SDL_WINDOW_FULLSCREEN_DESKTOP);
   if (window == NULL) {
     // In the case that the window could not be made...
     dbglogger_log("SDL_CreateWindow: %s\n", SDL_GetError());
@@ -65,6 +65,9 @@ int main(int argc, char **argv) {
   // print info
   debug_video();
 
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+  SDL_RenderSetLogicalSize(renderer, WIDTH, HEIGHT);
+
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   // load logo
@@ -74,8 +77,8 @@ int main(int argc, char **argv) {
   SDL_Texture *logo = load_resource(renderer, DATA_PATH "LOGO" GRAPH_EXT);
 
   // fade logo in and out
-  fade_in_out(renderer, logo, true);
-  fade_in_out(renderer, logo, false);
+  fade_in_out(renderer, logo, true, true);
+  fade_in_out(renderer, logo, true, false);
 
   // free logo
   SDL_DestroyTexture(logo);
@@ -86,25 +89,33 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 #ifndef SKIP_STARTSCREEN
-  SDL_Surface *fundo = load_resource(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
-  SDL_Surface *titulo = load_resource(renderer, DATA_PATH "TITULO" GRAPH_EXT);
-  SDL_Surface *start = load_resource(renderer, DATA_PATH "START" GRAPH_EXT);
+  SDL_Texture *fundo = load_resource(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
+  SDL_Texture *titulo = load_resource(renderer, DATA_PATH "TITULO" GRAPH_EXT);
+  SDL_Texture *start = load_resource(renderer, DATA_PATH "START" GRAPH_EXT);
 
   // fade start screen in
-  fade_in_out(screen, fundo, true);
+  fade_in_out(renderer, fundo, false, true);
+  SDL_SetTextureAlphaMod(fundo, 255);
 
   // init position
   SDL_Rect t_pos, s_pos;
 
-  t_pos.x = (screen->w - titulo->w) / 2;
-  t_pos.y = (screen->h / 4) * 1;
-  t_pos.w = titulo->w;
-  t_pos.h = titulo->h;
+  int rw, rh;
+  int tw, th;
 
-  s_pos.x = (screen->w - start->w) / 2;
-  s_pos.y = (screen->h / 4) * 3;
-  s_pos.w = start->w;
-  s_pos.h = start->h;
+  SDL_GetRendererOutputSize(renderer, &rw, &rh);
+
+  SDL_QueryTexture(titulo, NULL, NULL, &tw, &th);
+  t_pos.x = (rw - tw) / 2;
+  t_pos.y = (rh / 4) * 1;
+  t_pos.w = tw;
+  t_pos.h = th;
+
+  SDL_QueryTexture(start, NULL, NULL, &tw, &th);
+  s_pos.x = (rw - tw) / 2;
+  s_pos.y = (rh / 4) * 3;
+  s_pos.w = tw;
+  s_pos.h = th;
 
   int t_pos_x_max = t_pos.x + 50;
   int t_pos_x_min = t_pos.x - 50;
@@ -116,7 +127,11 @@ int main(int argc, char **argv) {
 
   // start screen loop
   bool start_active = true;
+
   while (start_active) {
+
+    /*Uint32 t = SDL_GetTicks();*/
+
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_QUIT) {
@@ -147,20 +162,17 @@ int main(int argc, char **argv) {
       s_pos_y_delta = -s_pos_y_delta;
     }
 
-    // paste fundo
-    SDL_BlitSurface(fundo, NULL, screen, NULL);
-    // paste barulandia
-    SDL_BlitSurface(titulo, NULL, screen, &t_pos);
-    // paste start button
-    SDL_BlitSurface(start, NULL, screen, &s_pos);
+    // clear and paste fundo, titulo, start
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, fundo, NULL, NULL);
+    SDL_RenderCopy(renderer, titulo, NULL, &t_pos);
+    SDL_RenderCopy(renderer, start, NULL, &s_pos);
 
     // render
-    SDL_UpdateTexture(sdlTexture, NULL, screen->pixels, screen->pitch);
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
     SDL_RenderPresent(renderer);
 
-    SDL_Delay(10);
+    /*dbglogger_printf("%ld ms\n", SDL_GetTicks() - t);*/
   }
 
   SDL_DestroyTexture(fundo);
@@ -168,7 +180,8 @@ int main(int argc, char **argv) {
   SDL_DestroyTexture(start);
 
   // black screen
-  SDL_FillRect(screen, NULL, SDL_MapRGBA(screen->format, 0, 0, 0, 255));
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_RenderClear(renderer);
   SDL_RenderPresent(renderer);
 #endif
 
@@ -490,6 +503,7 @@ int main(int argc, char **argv) {
   // cleanup
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
+  SDL_DestroyRenderer(renderer);
   SDL_JoystickClose(joystick);
 #ifdef USE_PNG
   IMG_Quit();

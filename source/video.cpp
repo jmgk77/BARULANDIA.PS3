@@ -30,23 +30,29 @@ SDL_Texture *load_resource(SDL_Renderer *renderer, const char *filename) {
   //
   SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
 
+  debug_texture(texture);
+
   return texture;
 }
 
-void fade_in_out(SDL_Renderer *renderer, SDL_Texture *image, bool in_out) {
+void fade_in_out(SDL_Renderer *renderer, SDL_Texture *image, bool resize,
+                 bool in_out) {
   int rw, rh;
   int tw, th;
+  SDL_Rect r;
 
   SDL_GetRendererOutputSize(renderer, &rw, &rh);
   SDL_QueryTexture(image, NULL, NULL, &tw, &th);
 
-  SDL_Rect r;
-  r.x = (rw - tw) / 2;
-  r.y = (rh - th) / 2;
-  r.w = tw;
-  r.h = th;
+  if (resize) {
 
-  /*dbglogger_printf("RENDER (%d x %d)\tTEXTURE (%d x %d)\n", rw, rh, tw, th);*/
+    r.x = (rw - tw) / 2;
+    r.y = (rh - th) / 2;
+    r.w = tw;
+    r.h = th;
+  }
+
+  dbglogger_printf("RENDER (%d x %d)\tTEXTURE (%d x %d)\n", rw, rh, tw, th);
 
   int alpha_init, alpha_end, alpha_step;
   if (in_out) {
@@ -68,7 +74,7 @@ void fade_in_out(SDL_Renderer *renderer, SDL_Texture *image, bool in_out) {
     // Draw the constructed surface to the primary surface now
     SDL_RenderClear(renderer);
     SDL_SetTextureAlphaMod(image, alpha);
-    SDL_RenderCopy(renderer, image, NULL, &r);
+    SDL_RenderCopy(renderer, image, NULL, resize ? &r : NULL);
     SDL_RenderPresent(renderer);
     SDL_Delay(100);
   }
