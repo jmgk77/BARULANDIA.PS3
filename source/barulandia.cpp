@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   }
 
   // print info
-  debug_video();
+  /*debug_video();*/
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
   SDL_RenderSetLogicalSize(renderer, WIDTH, HEIGHT);
@@ -100,20 +100,17 @@ int main(int argc, char **argv) {
   // init position
   SDL_Rect t_pos, s_pos;
 
-  int rw, rh;
   int tw, th;
 
-  SDL_GetRendererOutputSize(renderer, &rw, &rh);
-
   SDL_QueryTexture(titulo, NULL, NULL, &tw, &th);
-  t_pos.x = (rw - tw) / 2;
-  t_pos.y = (rh / 4) * 1;
+  t_pos.x = (WIDTH - tw) / 2;
+  t_pos.y = (HEIGHT / 4) * 1;
   t_pos.w = tw;
   t_pos.h = th;
 
   SDL_QueryTexture(start, NULL, NULL, &tw, &th);
-  s_pos.x = (rw - tw) / 2;
-  s_pos.y = (rh / 4) * 3;
+  s_pos.x = (WIDTH - tw) / 2;
+  s_pos.y = (HEIGHT / 4) * 3;
   s_pos.w = tw;
   s_pos.h = th;
 
@@ -139,7 +136,6 @@ int main(int argc, char **argv) {
       }
       if ((e.type == SDL_KEYDOWN) && (e.key.keysym.sym == SDLK_ESCAPE)) {
         start_active = false;
-        dbglogger_screenshot_tmp(255);
       }
     }
 
@@ -148,7 +144,6 @@ int main(int argc, char **argv) {
       if (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_START) ==
           SDL_PRESSED) {
         start_active = false;
-        dbglogger_screenshot_tmp(255);
       }
     }
 
@@ -192,35 +187,22 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
 
 #define CURSOR_AREA(x1, y1, x2, y2)                                            \
-  if ((cursor_x > x1) && (cursor_y > y1) && (cursor_x < x2) && (cursor_y < y2))
+  if ((cursor.x > x1) && (cursor.y > y1) && (cursor.x < x2) && (cursor.y < y2))
 
 #define CLICK_AREA                                                             \
   CURSOR_AREA(172, 17, 322, 147) { draw_new--; } /*prev draw*/                 \
   CURSOR_AREA(955, 17, 1110, 147) {              /*next draw*/                 \
     draw_new++;                                                                \
-    dbglogger_screenshot_tmp(255);                                             \
   }                                                                            \
   CURSOR_AREA(172, 565, 322, 707) { draw_refresh = true; } /*refresh draw*/    \
   CURSOR_AREA(172, 408, 322, 538) {                        /*eraser*/          \
-    new_color = SDL_MapRGBA(screen->format, 255, 255, 255, 255);               \
   }                                                                            \
   CURSOR_AREA(955, 408, 1110, 538) {} /*paint tool*/                           \
   CURSOR_AREA(1140, 15, 1270, 705) {  /*color picker*/                         \
-    if (under_cursor_color != SDL_MapRGBA(screen->format, 0, 0, 0, 255)) {     \
-      new_color = under_cursor_color;                                          \
-    }                                                                          \
+    /***/                                                                      \
   }                                                                            \
-  CURSOR_AREA(353, 1, 927, 719) { /*paint*/ /*restore content under cursor*/   \
-    SDL_Rect c_pos;                                                            \
-    c_pos.x = old_cursor_x;                                                    \
-    c_pos.y = old_cursor_y;                                                    \
-    c_pos.w = old_cursor->w;                                                   \
-    c_pos.h = old_cursor->h;                                                   \
-    SDL_BlitSurface(old_cursor, NULL, screen, &c_pos);                         \
-    floodfill(screen, cursor_x, cursor_y,                                      \
-              current_color); /* save content under cursor*/                   \
-    SDL_BlitSurface(screen, &c_pos, old_cursor, NULL);                         \
-    under_cursor_color = current_color;                                        \
+  CURSOR_AREA(353, 1, 927, 719) { /*paint*/                                    \
+    floodfill(aux, cursor.x, cursor.y, current_color);                         \
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -230,13 +212,16 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
 #ifndef SKIP_MAIN
   // init cursor
-  int cursor_x = screen->w / 2;
-  int cursor_y = screen->h / 2;
-  int old_cursor_x;
-  int old_cursor_y;
-  SDL_Surface *cursor = load_resource(renderer, DATA_PATH "CURSOR" GRAPH_EXT);
-  SDL_Surface *old_cursor =
-      load_resource(renderer, DATA_PATH "CURSOR" GRAPH_EXT);
+  SDL_Texture *tcursor = load_resource(renderer, DATA_PATH "CURSOR" GRAPH_EXT);
+
+  int tw, th;
+  SDL_QueryTexture(tcursor, NULL, NULL, &tw, &th);
+
+  SDL_Rect cursor;
+  cursor.x = WIDTH / 2;
+  cursor.y = HEIGHT / 2;
+  cursor.w = tw;
+  cursor.h = th;
 
   // draw control
   int draw_current = 0;
@@ -252,16 +237,17 @@ int main(int argc, char **argv) {
   // colors (default green)
   Uint32 current_color = -1;
   Uint32 under_cursor_color = -1;
-  Uint32 new_color = SDL_MapRGBA(screen->format, 0, 255, 0, 255);
+  Uint32 new_color = 0; /***SDL_MapRGBA(screen->format, 0, 255, 0, 255);*/
 
   // load resources
-  SDL_Surface *field = load_resource(renderer, DATA_PATH "FIELD" GRAPH_EXT);
-  SDL_Surface *draw = NULL;
+  SDL_Texture *field = load_resource(renderer, DATA_PATH "FIELD" GRAPH_EXT);
+  SDL_Texture *draw = NULL;
+
+  // auxiliar texture for drawing
+  SDL_Texture *aux = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+                                       SDL_TEXTUREACCESS_TARGET, WIDTH, HEIGHT);
 
   while (active) {
-
-    old_cursor_x = cursor_x;
-    old_cursor_y = cursor_y;
 
 #ifndef PS3
     // handle sdl events
@@ -330,7 +316,6 @@ int main(int argc, char **argv) {
           break;
         case SDLK_RCTRL:
           draw_new++;
-          dbglogger_screenshot_tmp(255);
           break;
           // X
         case SDLK_SPACE:
@@ -346,9 +331,16 @@ int main(int argc, char **argv) {
       }
     }
 
-    cursor_x += dx;
-    cursor_y += dy;
+    cursor.x += dx;
+    cursor.y += dy;
 #endif
+
+#define BUTTON_CHANGE(x)                                                       \
+  if (joystick_oldbuttonstate[x] != joystick_buttonstate[x])
+#define BUTTON_PRESSED(x)                                                      \
+  if (!joystick_oldbuttonstate[x] && joystick_buttonstate[x])
+#define BUTTON_RELEASED(x)                                                     \
+  if (joystick_oldbuttonstate[x] && !joystick_buttonstate[x])
 
 #ifdef PS3
     // handle joystick for PS3
@@ -359,13 +351,6 @@ int main(int argc, char **argv) {
         joystick_oldbuttonstate[i] = joystick_buttonstate[i];
         joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
       }
-
-#define BUTTON_CHANGE(x)                                                       \
-  if (joystick_oldbuttonstate[x] != joystick_buttonstate[x])
-#define BUTTON_PRESSED(x)                                                      \
-  if (!joystick_oldbuttonstate[x] && joystick_buttonstate[x])
-#define BUTTON_RELEASED(x)                                                     \
-  if (joystick_oldbuttonstate[x] && !joystick_buttonstate[x])
 
       // exit
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) active = false;
@@ -402,22 +387,20 @@ int main(int argc, char **argv) {
       }
 
       // accelerate cursor
-      cursor_x += dx + (dx * (accell / 10));
-      cursor_y += dy + (dy * (accell / 10));
+      cursor.x += dx + (dx * (accell / 10));
+      cursor.y += dy + (dy * (accell / 10));
     }
 #endif
 
-    // nextdraw boundaries check (circle)
+    // nextdraw boundaries check (cicle)
     draw_new =
         (draw_new < 0) ? (MAX_DRAW - 1) : (draw_new == MAX_DRAW) ? 0 : draw_new;
 
     // screen boundaries check (limit)
-    cursor_x = (cursor_x < 0)
-                   ? 0
-                   : (cursor_x >= screen->w - 1) ? (screen->w - 1) : cursor_x;
-    cursor_y = (cursor_y < 0)
-                   ? 0
-                   : (cursor_y >= screen->h - 1) ? (screen->h - 1) : cursor_y;
+    cursor.x =
+        (cursor.x < 0) ? 0 : (cursor.x >= WIDTH - 1) ? (WIDTH - 1) : cursor.x;
+    cursor.y =
+        (cursor.y < 0) ? 0 : (cursor.y >= HEIGHT - 1) ? (HEIGHT - 1) : cursor.y;
 
     // change/reload current drawing
     if ((draw_current != draw_new) || (draw_refresh)) {
@@ -430,29 +413,23 @@ int main(int argc, char **argv) {
 
       char buf[128];
       snprintf(buf, 128, "%sDRAW%d%s", DATA_PATH, draw_current + 1, GRAPH_EXT);
-
-      draw = load_resource(buf);
+      draw = load_resource(renderer, buf);
 
       // set position
+      int tw, th;
+      SDL_QueryTexture(draw, NULL, NULL, &tw, &th);
+
       SDL_Rect d_pos;
-      d_pos.x = (screen->w - draw->w) / 2;
+      d_pos.x = (WIDTH - tw) / 2;
       d_pos.y = 0;
-      d_pos.w = draw->w;
-      d_pos.h = draw->h;
+      d_pos.w = tw;
+      d_pos.h = th;
 
-      // paste field
-      SDL_BlitSurface(field, NULL, screen, NULL);
-
-      // paste new drawing in position
-      SDL_BlitSurface(draw, NULL, screen, &d_pos);
-
-      // save content under cursor
-      SDL_Rect c_pos;
-      c_pos.x = old_cursor_x;
-      c_pos.y = old_cursor_y;
-      c_pos.w = old_cursor->w;
-      c_pos.h = old_cursor->h;
-      SDL_BlitSurface(screen, &c_pos, old_cursor, NULL);
+      // paste field & draw into aux
+      SDL_SetRenderTarget(renderer, aux);
+      SDL_RenderCopy(renderer, field, NULL, NULL);
+      SDL_RenderCopy(renderer, draw, NULL, &d_pos);
+      SDL_SetRenderTarget(renderer, NULL);
 
       // redo color picker sample
       current_color = -1;
@@ -461,42 +438,20 @@ int main(int argc, char **argv) {
     // change current color
     if (current_color != new_color) {
       current_color = new_color;
-      floodfill(screen, 1000, 650, new_color);
+      floodfill(aux, 1000, 650, current_color);
     }
 
-    // restore content under cursor
-    SDL_Rect c_pos;
-    c_pos.x = old_cursor_x;
-    c_pos.y = old_cursor_y;
-    c_pos.w = old_cursor->w;
-    c_pos.h = old_cursor->h;
-    SDL_BlitSurface(old_cursor, NULL, screen, &c_pos);
-
-    // save color under cursor
-    SDL_LockSurface(screen);
-    under_cursor_color = GetPixel32_nolock(screen, cursor_x, cursor_y);
-    SDL_UnlockSurface(screen);
-
-    // save content under cursor
-    c_pos.x = cursor_x;
-    c_pos.y = cursor_y;
-    c_pos.w = old_cursor->w;
-    c_pos.h = old_cursor->h;
-    SDL_BlitSurface(screen, &c_pos, old_cursor, NULL);
-
-    // draw cursors
-    c_pos.x = cursor_x;
-    c_pos.y = cursor_y;
-    c_pos.w = cursor->w;
-    c_pos.h = cursor->h;
-    SDL_BlitSurface(cursor, NULL, screen, &c_pos);
-
     // render
-    SDL_UpdateTexture(sdlTexture, NULL, screen->pixels, screen->pitch);
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
+    SDL_RenderCopy(renderer, aux, NULL, NULL);
+    SDL_RenderCopy(renderer, tcursor, NULL, &cursor);
     SDL_RenderPresent(renderer);
   }
+  SDL_DestroyTexture(draw);
+  SDL_DestroyTexture(aux);
+  SDL_DestroyTexture(field);
+  SDL_DestroyTexture(tcursor);
+
 #endif
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////

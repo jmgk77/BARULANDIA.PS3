@@ -23,8 +23,8 @@ void _floodfill(SDL_Surface *screen, int x, int y, Uint32 color) {
   }
 }
 
-void floodfill(SDL_Surface *screen, int x, int y, Uint32 color) {
-  SDL_LockSurface(screen);
+void floodfill(SDL_Texture *screen, int x, int y, Uint32 color) {
+/*  SDL_LockSurface(screen);
   _floodfill(screen, x, y, color);
-  SDL_UnlockSurface(screen);
+  SDL_UnlockSurface(screen);*/
 }
