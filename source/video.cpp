@@ -1,6 +1,6 @@
 #include "video.h"
 
-SDL_Texture *load_resource(SDL_Renderer *renderer, const char *filename) {
+SDL_Surface *load_surface(const char *filename) {
   SDL_Surface *tmp;
   dbglogger_log("RESOURCE: %s", filename);
 #ifdef USE_PNG
@@ -16,6 +16,11 @@ SDL_Texture *load_resource(SDL_Renderer *renderer, const char *filename) {
     return NULL;
   }
 #endif
+  return tmp;
+}
+
+SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filename) {
+  SDL_Surface *tmp = load_surface(filename);
 
   // Convert the img to texture
   SDL_Texture *texture;
@@ -58,13 +63,13 @@ void fade_in_out(SDL_Renderer *renderer, SDL_Texture *image, bool resize,
   if (in_out) {
     // fade in
     alpha_init = 0;
-    alpha_end = 64;
-    alpha_step = 2;
+    alpha_end = 255;
+    alpha_step = 3;
   } else {
     // fade out
-    alpha_init = 64;
+    alpha_init = 255;
     alpha_end = 0;
-    alpha_step = -2;
+    alpha_step = -3;
   }
 
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -76,6 +81,6 @@ void fade_in_out(SDL_Renderer *renderer, SDL_Texture *image, bool resize,
     SDL_SetTextureAlphaMod(image, alpha);
     SDL_RenderCopy(renderer, image, NULL, resize ? &r : NULL);
     SDL_RenderPresent(renderer);
-    SDL_Delay(100);
+/*    SDL_Delay(100);*/
   }
 }

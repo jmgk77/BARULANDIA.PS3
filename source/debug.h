@@ -5,11 +5,20 @@
 #define DBG_IP "192.168.0.11"
 #define DBG_PORT "18194"
 
+#ifdef DEBUG
 #ifndef PS3
 #define dbglogger_init_str(x)
 #define dbglogger_stop(x)
 #define dbglogger_log printf
 #define dbglogger_printf printf
+#define dbglogger_screenshot_tmp(x)
+#endif
+#else
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#define dbglogger_init_str(x)
+#define dbglogger_stop(x)
+#define dbglogger_log(...)
+#define dbglogger_printf(...)
 #define dbglogger_screenshot_tmp(x)
 #endif
 

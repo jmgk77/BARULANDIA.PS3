@@ -2,8 +2,10 @@
 
 #define USE_PNG 1
 
-#define SKIP_INTRO 1
-#define SKIP_STARTSCREEN 1
+//#define DEBUG 1
+
+//#define SKIP_INTRO 1
+//#define SKIP_STARTSCREEN 1
 //#define SKIP_MAIN
 
 #define MAX_DRAW 10

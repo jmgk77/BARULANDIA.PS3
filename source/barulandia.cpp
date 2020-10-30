@@ -3,7 +3,10 @@
 int main(int argc, char **argv) {
   dbglogger_init_str("tcp:" DBG_IP ":" DBG_PORT);
   dbglogger_log("BARULANDIA for ps3 (c) jmgk 2020");
+
+#ifdef DEBUG
   atexit(ret2psload);
+#endif
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -25,6 +28,7 @@ int main(int argc, char **argv) {
   }
 #endif
 
+#ifdef PS3
   // init joystick
   SDL_Joystick *joystick = SDL_JoystickOpen(0);
 
@@ -34,29 +38,19 @@ int main(int argc, char **argv) {
   for (int i = 0; i < JOYBUTTONS; ++i) {
     joystick_oldbuttonstate[i] = joystick_buttonstate[i] = false;
   }
+#endif
 
   // init screen
   SDL_Window *window = SDL_CreateWindow(
       "BARULANDIA.PS3", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0,
       SDL_WINDOW_FULLSCREEN_DESKTOP);
   if (window == NULL) {
-    // In the case that the window could not be made...
     dbglogger_log("SDL_CreateWindow: %s\n", SDL_GetError());
-    return 1;
-  }
-  SDL_Renderer *renderer =
-      SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
-  if (renderer == NULL) {
-    dbglogger_log("SDL_CreateRenderer: %s", SDL_GetError());
     return -1;
   }
 
-  if (window == NULL) {
-    // In the case that the window could not be made...
-    dbglogger_log("SDL_CreateWindow: %s\n", SDL_GetError());
-    return 1;
-  }
-
+  SDL_Renderer *renderer =
+      SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
   if (renderer == NULL) {
     dbglogger_log("SDL_CreateRenderer: %s", SDL_GetError());
     return -1;
@@ -65,6 +59,10 @@ int main(int argc, char **argv) {
   // print info
   /*debug_video();*/
 
+  // white is our "clear screen' color
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+
+  // set "virtual" size
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
   SDL_RenderSetLogicalSize(renderer, WIDTH, HEIGHT);
 
@@ -74,7 +72,7 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 #ifndef SKIP_INTRO
-  SDL_Texture *logo = load_resource(renderer, DATA_PATH "LOGO" GRAPH_EXT);
+  SDL_Texture *logo = load_texture(renderer, DATA_PATH "LOGO" GRAPH_EXT);
 
   // fade logo in and out
   fade_in_out(renderer, logo, true, true);
@@ -89,19 +87,20 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 #ifndef SKIP_STARTSCREEN
-  SDL_Texture *fundo = load_resource(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
-  SDL_Texture *titulo = load_resource(renderer, DATA_PATH "TITULO" GRAPH_EXT);
-  SDL_Texture *start = load_resource(renderer, DATA_PATH "START" GRAPH_EXT);
+  SDL_Texture *fundo = load_texture(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
+  SDL_Texture *titulo = load_texture(renderer, DATA_PATH "TITULO" GRAPH_EXT);
+  SDL_Texture *start = load_texture(renderer, DATA_PATH "START" GRAPH_EXT);
 
   // fade start screen in
   fade_in_out(renderer, fundo, false, true);
-  SDL_SetTextureAlphaMod(fundo, 255);
 
-  // init position
+  // reset alpha
+  SDL_SetTextureAlphaMod(fundo, SDL_ALPHA_OPAQUE);
+
+  // init positions
   SDL_Rect t_pos, s_pos;
 
   int tw, th;
-
   SDL_QueryTexture(titulo, NULL, NULL, &tw, &th);
   t_pos.x = (WIDTH - tw) / 2;
   t_pos.y = (HEIGHT / 4) * 1;
@@ -127,8 +126,15 @@ int main(int argc, char **argv) {
 
   while (start_active) {
 
-    /*Uint32 t = SDL_GetTicks();*/
-
+#ifdef PS3
+    if (joystick) {
+      SDL_JoystickUpdate();
+      if (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_START) ==
+          SDL_PRESSED) {
+        start_active = false;
+      }
+    }
+#else
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_QUIT) {
@@ -138,14 +144,7 @@ int main(int argc, char **argv) {
         start_active = false;
       }
     }
-
-    if (joystick) {
-      SDL_JoystickUpdate();
-      if (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_START) ==
-          SDL_PRESSED) {
-        start_active = false;
-      }
-    }
+#endif
 
     // move
     t_pos.x += t_pos_x_delta;
@@ -158,7 +157,6 @@ int main(int argc, char **argv) {
     }
 
     // clear and paste fundo, titulo, start
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, fundo, NULL, NULL);
     SDL_RenderCopy(renderer, titulo, NULL, &t_pos);
@@ -166,18 +164,12 @@ int main(int argc, char **argv) {
 
     // render
     SDL_RenderPresent(renderer);
-
-    /*dbglogger_printf("%ld ms\n", SDL_GetTicks() - t);*/
   }
 
   SDL_DestroyTexture(fundo);
   SDL_DestroyTexture(titulo);
   SDL_DestroyTexture(start);
 
-  // black screen
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-  SDL_RenderClear(renderer);
-  SDL_RenderPresent(renderer);
 #endif
 
   /////////////////////////////////////////////////////////////////////////////
@@ -199,57 +191,98 @@ int main(int argc, char **argv) {
   }                                                                            \
   CURSOR_AREA(955, 408, 1110, 538) {} /*paint tool*/                           \
   CURSOR_AREA(1140, 15, 1270, 705) {  /*color picker*/                         \
-    /***/                                                                      \
+    SDL_LockSurface(field);                                                    \
+    Uint32 under_cursor_color = GetPixel32_nolock(field, cursor.x, cursor.y);  \
+    SDL_UnlockSurface(field);                                                  \
+    if (under_cursor_color !=                                                  \
+        SDL_MapRGBA(field->format, 0, 0, 0, SDL_ALPHA_OPAQUE)) {               \
+      new_color = under_cursor_color;                                          \
+    }                                                                          \
   }                                                                            \
   CURSOR_AREA(353, 1, 927, 719) { /*paint*/                                    \
-    floodfill(aux, cursor.x, cursor.y, current_color);                         \
+    floodfill(field, cursor.x, cursor.y, current_color);                       \
+    redraw = true;                                                             \
   }
 
-  /////////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////////
-  // main loop
-  /////////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+// main loop
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 #ifndef SKIP_MAIN
   // init cursor
-  SDL_Texture *tcursor = load_resource(renderer, DATA_PATH "CURSOR" GRAPH_EXT);
+  SDL_Texture *tcursor = load_texture(renderer, DATA_PATH "CURSOR" GRAPH_EXT);
 
-  int tw, th;
-  SDL_QueryTexture(tcursor, NULL, NULL, &tw, &th);
+  int cw, ch;
+  SDL_QueryTexture(tcursor, NULL, NULL, &cw, &ch);
 
   SDL_Rect cursor;
   cursor.x = WIDTH / 2;
   cursor.y = HEIGHT / 2;
-  cursor.w = tw;
-  cursor.h = th;
+  cursor.w = cw;
+  cursor.h = ch;
 
   // draw control
   int draw_current = 0;
   int draw_new = 0;
   bool draw_refresh = true;
 
-  // main loop
-  bool active = true;
+  // cursor movement
   int dx = 0;
   int dy = 0;
   int accell = 0;
 
+  // load resources
+  SDL_Surface *field = load_surface(DATA_PATH "FIELD" GRAPH_EXT);
+  SDL_Surface *draw = NULL;
+
   // colors (default green)
   Uint32 current_color = -1;
-  Uint32 under_cursor_color = -1;
-  Uint32 new_color = 0; /***SDL_MapRGBA(screen->format, 0, 255, 0, 255);*/
+  Uint32 new_color = SDL_MapRGBA(field->format, 0, 255, 0, SDL_ALPHA_OPAQUE);
 
-  // load resources
-  SDL_Texture *field = load_resource(renderer, DATA_PATH "FIELD" GRAPH_EXT);
-  SDL_Texture *draw = NULL;
+  // surface to texture
+  bool redraw = true;
+  SDL_Texture *aux = NULL;
 
-  // auxiliar texture for drawing
-  SDL_Texture *aux = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
-                                       SDL_TEXTUREACCESS_TARGET, WIDTH, HEIGHT);
+  // main loop
+  bool active = true;
 
   while (active) {
 
-#ifndef PS3
+#define BUTTON_CHANGE(x)                                                       \
+  if (joystick_oldbuttonstate[x] != joystick_buttonstate[x])
+#define BUTTON_PRESSED(x)                                                      \
+  if (!joystick_oldbuttonstate[x] && joystick_buttonstate[x])
+#define BUTTON_RELEASED(x)                                                     \
+  if (joystick_oldbuttonstate[x] && !joystick_buttonstate[x])
+
+#ifdef PS3
+    // handle joystick for PS3
+    if (joystick) {
+      SDL_JoystickUpdate();
+      /*debug_joystick(joystick);*/
+      for (int i = 0; i < JOYBUTTONS; ++i) {
+        joystick_oldbuttonstate[i] = joystick_buttonstate[i];
+        joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
+      }
+
+      // exit
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) active = false;
+
+      // change drawing
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_L1) draw_new--;
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_R1) draw_new++;
+
+      // clicks
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) { CLICK_AREA }
+
+      // update cursor (joystick L)
+      int _x = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
+      int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
+      dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
+      dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
+    }
+#else
     // handle sdl events
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
@@ -290,24 +323,16 @@ int main(int argc, char **argv) {
         switch (e.key.keysym.sym) {
           // cut keydown (movement)
         case SDLK_LEFT:
-          if (dx < 0) {
-            dx = 0;
-          }
+          dx = 0;
           break;
         case SDLK_RIGHT:
-          if (dx > 0) {
-            dx = 0;
-          }
+          dx = 0;
           break;
         case SDLK_UP:
-          if (dy < 0) {
-            dy = 0;
-          }
+          dy = 0;
           break;
         case SDLK_DOWN:
-          if (dy > 0) {
-            dy = 0;
-          }
+          dy = 0;
           break;
           ////
         // L1 & R1
@@ -321,7 +346,6 @@ int main(int argc, char **argv) {
         case SDLK_SPACE:
           CLICK_AREA
           break;
-
         default:
           break;
         }
@@ -330,67 +354,23 @@ int main(int argc, char **argv) {
         break;
       }
     }
-
-    cursor.x += dx;
-    cursor.y += dy;
 #endif
 
-#define BUTTON_CHANGE(x)                                                       \
-  if (joystick_oldbuttonstate[x] != joystick_buttonstate[x])
-#define BUTTON_PRESSED(x)                                                      \
-  if (!joystick_oldbuttonstate[x] && joystick_buttonstate[x])
-#define BUTTON_RELEASED(x)                                                     \
-  if (joystick_oldbuttonstate[x] && !joystick_buttonstate[x])
-
-#ifdef PS3
-    // handle joystick for PS3
-    if (joystick) {
-      SDL_JoystickUpdate();
-      /*debug_joystick(joystick);*/
-      for (int i = 0; i < JOYBUTTONS; ++i) {
-        joystick_oldbuttonstate[i] = joystick_buttonstate[i];
-        joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
-      }
-
-      // exit
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) active = false;
-
-      // change drawing
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_L1) {
-        draw_new--;
-        if (draw_new < 0) {
-          draw_new = MAX_DRAW - 1;
-        }
-      }
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_R1) {
-        draw_new++;
-        if (draw_new == MAX_DRAW) {
-          draw_new = 0;
-        }
-      }
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) { CLICK_AREA }
-
-      // update cursor (joystick L)
-      int _x = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
-      int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
-      dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
-      dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
-      if (!dx && !dy) {
-        accell = 0;
-      } else {
-        accell++;
-      }
-
-      // limit acceleration
-      if (accell > 60) {
-        accell = 60;
-      }
-
-      // accelerate cursor
-      cursor.x += dx + (dx * (accell / 10));
-      cursor.y += dy + (dy * (accell / 10));
+    // start/stop acceleration
+    if (!dx && !dy) {
+      accell = 0;
+    } else {
+      accell++;
     }
-#endif
+
+    // limit acceleration
+    if (accell > 60) {
+      accell = 60;
+    }
+
+    // accelerate cursor
+    cursor.x += dx + (dx * (accell / 10));
+    cursor.y += dy + (dy * (accell / 10));
 
     // nextdraw boundaries check (cicle)
     draw_new =
@@ -407,49 +387,52 @@ int main(int argc, char **argv) {
       draw_current = draw_new;
       draw_refresh = false;
 
-      if (draw) {
-        SDL_DestroyTexture(draw);
-      }
+      // free old
+      SDL_FreeSurface(draw);
 
+      // load new
       char buf[128];
       snprintf(buf, 128, "%sDRAW%d%s", DATA_PATH, draw_current + 1, GRAPH_EXT);
-      draw = load_resource(renderer, buf);
+      draw = load_surface(buf);
 
       // set position
-      int tw, th;
-      SDL_QueryTexture(draw, NULL, NULL, &tw, &th);
-
       SDL_Rect d_pos;
-      d_pos.x = (WIDTH - tw) / 2;
+      d_pos.x = (WIDTH - draw->w) / 2;
       d_pos.y = 0;
-      d_pos.w = tw;
-      d_pos.h = th;
+      d_pos.w = draw->w;
+      d_pos.h = draw->h;
 
-      // paste field & draw into aux
-      SDL_SetRenderTarget(renderer, aux);
-      SDL_RenderCopy(renderer, field, NULL, NULL);
-      SDL_RenderCopy(renderer, draw, NULL, &d_pos);
-      SDL_SetRenderTarget(renderer, NULL);
+      // paste draw into field
+      SDL_BlitSurface(draw, NULL, field, &d_pos);
 
       // redo color picker sample
       current_color = -1;
+      redraw = true;
     }
 
     // change current color
     if (current_color != new_color) {
       current_color = new_color;
-      floodfill(aux, 1000, 650, current_color);
+      floodfill(field, 1000, 650, current_color);
+      redraw = true;
     }
 
     // render
     SDL_RenderClear(renderer);
+    if (redraw) {
+      // recreate aux texture
+      SDL_DestroyTexture(aux);
+      aux = SDL_CreateTextureFromSurface(renderer, field);
+      redraw = false;
+    }
     SDL_RenderCopy(renderer, aux, NULL, NULL);
     SDL_RenderCopy(renderer, tcursor, NULL, &cursor);
     SDL_RenderPresent(renderer);
   }
-  SDL_DestroyTexture(draw);
-  SDL_DestroyTexture(aux);
-  SDL_DestroyTexture(field);
+
+  // free
+  SDL_FreeSurface(draw);
+  SDL_FreeSurface(field);
   SDL_DestroyTexture(tcursor);
 
 #endif
@@ -459,7 +442,11 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   SDL_DestroyRenderer(renderer);
+
+#ifdef PS3
   SDL_JoystickClose(joystick);
+#endif
+
 #ifdef USE_PNG
   IMG_Quit();
 #endif

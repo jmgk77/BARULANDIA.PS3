@@ -350,11 +350,11 @@ void debug_texture(SDL_Texture *texture) {
   case SDL_PIXELFORMAT_YVYU:
     s = "SDL_PIXELFORMAT_YVYU";
     break;
-  /*case SDL_PIXELFORMAT_NV12:
-    s = "SDL_PIXELFORMAT_NV12";
-  case SDL_PIXELFORMAT_NV21:
-    s = "SDL_PIXELFORMAT_NV21";
-    break;*/
+    /*case SDL_PIXELFORMAT_NV12:
+      s = "SDL_PIXELFORMAT_NV12";
+    case SDL_PIXELFORMAT_NV21:
+      s = "SDL_PIXELFORMAT_NV21";
+      break;*/
 
   default:
     s = "ERROR";
