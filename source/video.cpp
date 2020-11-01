@@ -81,6 +81,5 @@ void fade_in_out(SDL_Renderer *renderer, SDL_Texture *image, bool resize,
     SDL_SetTextureAlphaMod(image, alpha);
     SDL_RenderCopy(renderer, image, NULL, resize ? &r : NULL);
     SDL_RenderPresent(renderer);
-/*    SDL_Delay(100);*/
   }
 }

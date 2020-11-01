@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
   }
 
   // print info
-  /*debug_video();*/
+  debug_video();
 
   // white is our "clear screen' color
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
@@ -166,6 +166,8 @@ int main(int argc, char **argv) {
     SDL_RenderPresent(renderer);
   }
 
+  fade_in_out(renderer, fundo, false, false);
+
   SDL_DestroyTexture(fundo);
   SDL_DestroyTexture(titulo);
   SDL_DestroyTexture(start);
@@ -188,7 +190,7 @@ int main(int argc, char **argv) {
   }                                                                            \
   CURSOR_AREA(172, 565, 322, 707) { draw_refresh = true; } /*refresh draw*/    \
   CURSOR_AREA(172, 408, 322, 538) {                        /*eraser*/          \
-    new_color = SDL_MapRGBA(field->format, 255, 255, 255, SDL_ALPHA_OPAQUE);   \
+    color_new = SDL_MapRGBA(field->format, 255, 255, 255, SDL_ALPHA_OPAQUE);   \
   }                                                                            \
   CURSOR_AREA(955, 408, 1110, 538) {} /*paint tool*/                           \
   CURSOR_AREA(1140, 15, 1270, 705) {  /*color picker*/                         \
@@ -196,11 +198,11 @@ int main(int argc, char **argv) {
     Uint32 c = GetPixel32_nolock(field, cursor.x, cursor.y);                   \
     SDL_UnlockSurface(field);                                                  \
     if (c != SDL_MapRGBA(field->format, 0, 0, 0, SDL_ALPHA_OPAQUE)) {          \
-      new_color = c;                                                           \
+      color_new = c;                                                           \
     }                                                                          \
   }                                                                            \
   CURSOR_AREA(353, 1, 927, 719) { /*paint*/                                    \
-    floodfill(field, cursor.x, cursor.y, current_color);                       \
+    floodfill(field, cursor.x, cursor.y, color_current);                       \
     redraw = true;                                                             \
   }
 
@@ -237,17 +239,22 @@ int main(int argc, char **argv) {
   SDL_Surface *draw = NULL;
 
   // colors (default green)
-  Uint32 current_color = -1;
-  Uint32 new_color = SDL_MapRGBA(field->format, 0, 255, 0, SDL_ALPHA_OPAQUE);
+  Uint32 color_current = -1;
+  Uint32 color_new = SDL_MapRGBA(field->format, 0, 255, 0, SDL_ALPHA_OPAQUE);
 
   // surface to texture
   bool redraw = true;
   SDL_Texture *aux = NULL;
 
   // exit confirmation stuff
-  bool exit_confirm = false;
+  bool exit_show = false;
   bool exit_screen = false;
-  SDL_Surface *confirm_exit = load_surface(DATA_PATH "EXIT" GRAPH_EXT);
+  SDL_Surface *exit_surface = load_surface(DATA_PATH "EXIT" GRAPH_EXT);
+
+  // exit confirmation stuff
+  bool help_show = false;
+  bool help_screen = false;
+  SDL_Surface *help_surface = load_surface(DATA_PATH "HELP" GRAPH_EXT);
 
   // main loop
   bool active = true;
@@ -271,20 +278,27 @@ int main(int argc, char **argv) {
         joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
       }
 
-      // exit screen buttons
-      if (exit_confirm) {
+      // exit screen button (confirm)
+      if (exit_show) {
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) active = false;
+      }
+
+      // exit & help screen button (back)
+      if (exit_show || help_show) {
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CIRCLE) {
-          exit_confirm = false;
+          exit_show = false;
           exit_screen = false;
+          help_show = false;
+          help_screen = false;
           redraw = true;
         }
-        //} else if () {
-        // help screen
-
       } else {
+        //normal buttons...
         // show exit screen
-        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) exit_confirm = true;
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) exit_show = true;
+
+        // show help screen
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_SELECT) help_show = true;
 
         // change drawing
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_L1) draw_new--;
@@ -308,15 +322,14 @@ int main(int argc, char **argv) {
       switch (e.type) {
 
       case SDL_QUIT:
-        exit_confirm = true;
+        exit_show = true;
         break;
         // handle keypresses for linux
       case SDL_KEYDOWN:
-        /*dbglogger_printf("SDL_KEYDOWN:
-         * %s\n",SDL_GetKeyName(e.key.keysym.sym));*/
+        dbglogger_printf("SDL_KEYDOWN: %s\n",SDL_GetKeyName(e.key.keysym.sym));
         switch (e.key.keysym.sym) {
         case SDLK_ESCAPE:
-          exit_confirm = true;
+          exit_show = true;
           break;
         // keydown only for continuous input (movement)
         case SDLK_LEFT:
@@ -337,7 +350,7 @@ int main(int argc, char **argv) {
         }
         break;
       case SDL_KEYUP:
-        /*dbglogger_printf("SDL_UP: %s\n", SDL_GetKeyName(e.key.keysym.sym));*/
+        dbglogger_printf("SDL_UP: %s\n", SDL_GetKeyName(e.key.keysym.sym));
         switch (e.key.keysym.sym) {
           // cut keydown (movement)
         case SDLK_LEFT:
@@ -353,15 +366,20 @@ int main(int argc, char **argv) {
           dy = 0;
           break;
           ////
+        case SDLK_TAB:
+          help_show = true;
+          break;
         // Y & N exit screen
         case SDLK_x:
-          if (exit_confirm)
+          if (exit_show)
             active = false;
           break;
         case SDLK_o:
-          if (exit_confirm) {
-            exit_confirm = false;
+          if (exit_show || help_show) {
+            exit_show = false;
             exit_screen = false;
+            help_show = false;
+            help_screen = false;
             redraw = true;
           }
           break;
@@ -387,12 +405,17 @@ int main(int argc, char **argv) {
 #endif
 
     // exit screen
-    if (exit_confirm) {
-      if (!exit_screen) {
-        SDL_DestroyTexture(aux);
-        aux = SDL_CreateTextureFromSurface(renderer, confirm_exit);
-        exit_screen = true;
-      }
+    if ((exit_show) && (!exit_screen)) {
+      SDL_DestroyTexture(aux);
+      aux = SDL_CreateTextureFromSurface(renderer, exit_surface);
+      exit_screen = true;
+    }
+
+    // help screen
+    if ((help_show) && (!help_screen)) {
+      SDL_DestroyTexture(aux);
+      aux = SDL_CreateTextureFromSurface(renderer, help_surface);
+      help_screen = true;
     }
 
     // start/stop acceleration
@@ -445,14 +468,14 @@ int main(int argc, char **argv) {
       SDL_BlitSurface(draw, NULL, field, &d_pos);
 
       // redo color picker sample
-      current_color = -1;
+      color_current = -1;
       redraw = true;
     }
 
     // change current color
-    if (current_color != new_color) {
-      current_color = new_color;
-      floodfill(field, 1000, 650, current_color);
+    if (color_current != color_new) {
+      color_current = color_new;
+      floodfill(field, 1000, 650, color_current);
       redraw = true;
     }
 
@@ -471,7 +494,8 @@ int main(int argc, char **argv) {
 
   // free
   SDL_FreeSurface(draw);
-  SDL_FreeSurface(confirm_exit);
+  SDL_FreeSurface(exit_surface);
+  SDL_FreeSurface(help_surface);
   SDL_FreeSurface(field);
   SDL_DestroyTexture(aux);
   SDL_DestroyTexture(tcursor);
