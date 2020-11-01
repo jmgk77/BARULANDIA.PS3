@@ -244,6 +244,11 @@ int main(int argc, char **argv) {
   bool redraw = true;
   SDL_Texture *aux = NULL;
 
+  // exit confirmation stuff
+  bool exit_confirm = false;
+  bool exit_screen = false;
+  SDL_Surface *confirm_exit = load_surface(DATA_PATH "EXIT" GRAPH_EXT);
+
   // main loop
   bool active = true;
 
@@ -266,21 +271,34 @@ int main(int argc, char **argv) {
         joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
       }
 
-      // exit
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) active = false;
+      // exit screen buttons
+      if (exit_confirm) {
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) active = false;
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CIRCLE) {
+          exit_confirm = false;
+          exit_screen = false;
+          redraw = true;
+        }
+        //} else if () {
+        // help screen
 
-      // change drawing
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_L1) draw_new--;
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_R1) draw_new++;
+      } else {
+        // show exit screen
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) exit_confirm = true;
 
-      // clicks
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) { CLICK_AREA }
+        // change drawing
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_L1) draw_new--;
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_R1) draw_new++;
 
-      // update cursor (joystick L)
-      int _x = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
-      int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
-      dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
-      dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
+        // clicks
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) { CLICK_AREA }
+
+        // update cursor (joystick L)
+        int _x = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
+        int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
+        dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
+        dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
+      }
     }
 #else
     // handle sdl events
@@ -290,7 +308,7 @@ int main(int argc, char **argv) {
       switch (e.type) {
 
       case SDL_QUIT:
-        active = false;
+        exit_confirm = true;
         break;
         // handle keypresses for linux
       case SDL_KEYDOWN:
@@ -298,7 +316,7 @@ int main(int argc, char **argv) {
          * %s\n",SDL_GetKeyName(e.key.keysym.sym));*/
         switch (e.key.keysym.sym) {
         case SDLK_ESCAPE:
-          active = false;
+          exit_confirm = true;
           break;
         // keydown only for continuous input (movement)
         case SDLK_LEFT:
@@ -335,6 +353,18 @@ int main(int argc, char **argv) {
           dy = 0;
           break;
           ////
+        // Y & N exit screen
+        case SDLK_x:
+          if (exit_confirm)
+            active = false;
+          break;
+        case SDLK_o:
+          if (exit_confirm) {
+            exit_confirm = false;
+            exit_screen = false;
+            redraw = true;
+          }
+          break;
         // L1 & R1
         case SDLK_LCTRL:
           draw_new--;
@@ -355,6 +385,15 @@ int main(int argc, char **argv) {
       }
     }
 #endif
+
+    // exit screen
+    if (exit_confirm) {
+      if (!exit_screen) {
+        SDL_DestroyTexture(aux);
+        aux = SDL_CreateTextureFromSurface(renderer, confirm_exit);
+        exit_screen = true;
+      }
+    }
 
     // start/stop acceleration
     if (!dx && !dy) {
@@ -432,7 +471,9 @@ int main(int argc, char **argv) {
 
   // free
   SDL_FreeSurface(draw);
+  SDL_FreeSurface(confirm_exit);
   SDL_FreeSurface(field);
+  SDL_DestroyTexture(aux);
   SDL_DestroyTexture(tcursor);
 
 #endif

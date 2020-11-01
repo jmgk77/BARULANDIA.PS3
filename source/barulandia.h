@@ -2,7 +2,7 @@
 
 #define USE_PNG 1
 
-//#define DEBUG 1
+#define DEBUG 1
 
 //#define SKIP_INTRO 1
 //#define SKIP_STARTSCREEN 1
@@ -31,12 +31,12 @@
 #include <sys/process.h>
 #include <sysutil/msg.h>
 #include <sysutil/sysutil.h>
-#define DATA_PATH "/dev_hdd0/game/SDL00BARU/"
+#define DATA_PATH "/dev_hdd0/game/SDL20BARU/USRDIR/"
 
 #else
 #undef SDL_FULLSCREEN
 #define SDL_FULLSCREEN 0
-#define DATA_PATH "../release/"
+#define DATA_PATH "../release/USRDIR/"
 #endif
 
 #define WIDTH 1280
