@@ -188,15 +188,15 @@ int main(int argc, char **argv) {
   }                                                                            \
   CURSOR_AREA(172, 565, 322, 707) { draw_refresh = true; } /*refresh draw*/    \
   CURSOR_AREA(172, 408, 322, 538) {                        /*eraser*/          \
+    new_color = SDL_MapRGBA(field->format, 255, 255, 255, SDL_ALPHA_OPAQUE);   \
   }                                                                            \
   CURSOR_AREA(955, 408, 1110, 538) {} /*paint tool*/                           \
   CURSOR_AREA(1140, 15, 1270, 705) {  /*color picker*/                         \
     SDL_LockSurface(field);                                                    \
-    Uint32 under_cursor_color = GetPixel32_nolock(field, cursor.x, cursor.y);  \
+    Uint32 c = GetPixel32_nolock(field, cursor.x, cursor.y);                   \
     SDL_UnlockSurface(field);                                                  \
-    if (under_cursor_color !=                                                  \
-        SDL_MapRGBA(field->format, 0, 0, 0, SDL_ALPHA_OPAQUE)) {               \
-      new_color = under_cursor_color;                                          \
+    if (c != SDL_MapRGBA(field->format, 0, 0, 0, SDL_ALPHA_OPAQUE)) {          \
+      new_color = c;                                                           \
     }                                                                          \
   }                                                                            \
   CURSOR_AREA(353, 1, 927, 719) { /*paint*/                                    \
