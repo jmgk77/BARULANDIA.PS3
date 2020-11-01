@@ -40,6 +40,10 @@ SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filename) {
   return texture;
 }
 
+int alpha = 3;
+
+void set_alpha_rate(int a) { alpha = a; }
+
 void fade_in_out(SDL_Renderer *renderer, SDL_Texture *image, bool resize,
                  bool in_out) {
   int rw, rh;
@@ -64,12 +68,12 @@ void fade_in_out(SDL_Renderer *renderer, SDL_Texture *image, bool resize,
     // fade in
     alpha_init = 0;
     alpha_end = 255;
-    alpha_step = 3;
+    alpha_step = (alpha);
   } else {
     // fade out
     alpha_init = 255;
     alpha_end = 0;
-    alpha_step = -3;
+    alpha_step = -(alpha);
   }
 
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);

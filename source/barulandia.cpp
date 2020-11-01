@@ -42,8 +42,8 @@ int main(int argc, char **argv) {
 
   // init screen
   SDL_Window *window = SDL_CreateWindow(
-      "BARULANDIA.PS3", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0,
-      SDL_WINDOW_FULLSCREEN_DESKTOP);
+      "BARULANDIA.PS3", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH,
+      HEIGHT, SDL_WINDOW_FULLSCREEN);
   if (window == NULL) {
     dbglogger_log("SDL_CreateWindow: %s\n", SDL_GetError());
     return -1;
@@ -62,10 +62,6 @@ int main(int argc, char **argv) {
   // white is our "clear screen' color
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 
-  // set "virtual" size
-  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-  SDL_RenderSetLogicalSize(renderer, WIDTH, HEIGHT);
-
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   // load logo
@@ -75,6 +71,7 @@ int main(int argc, char **argv) {
   SDL_Texture *logo = load_texture(renderer, DATA_PATH "LOGO" GRAPH_EXT);
 
   // fade logo in and out
+  set_alpha_rate(3);
   fade_in_out(renderer, logo, true, true);
   fade_in_out(renderer, logo, true, false);
 
@@ -92,6 +89,7 @@ int main(int argc, char **argv) {
   SDL_Texture *start = load_texture(renderer, DATA_PATH "START" GRAPH_EXT);
 
   // fade start screen in
+  set_alpha_rate(5);
   fade_in_out(renderer, fundo, false, true);
 
   // reset alpha
@@ -166,6 +164,7 @@ int main(int argc, char **argv) {
     SDL_RenderPresent(renderer);
   }
 
+  set_alpha_rate(15);
   fade_in_out(renderer, fundo, false, false);
 
   SDL_DestroyTexture(fundo);
@@ -293,7 +292,7 @@ int main(int argc, char **argv) {
           redraw = true;
         }
       } else {
-        //normal buttons...
+        // normal buttons...
         // show exit screen
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) exit_show = true;
 
@@ -326,7 +325,7 @@ int main(int argc, char **argv) {
         break;
         // handle keypresses for linux
       case SDL_KEYDOWN:
-        dbglogger_printf("SDL_KEYDOWN: %s\n",SDL_GetKeyName(e.key.keysym.sym));
+        dbglogger_printf("SDL_KEYDOWN: %s\n", SDL_GetKeyName(e.key.keysym.sym));
         switch (e.key.keysym.sym) {
         case SDLK_ESCAPE:
           exit_show = true;
