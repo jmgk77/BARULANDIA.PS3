@@ -382,3 +382,26 @@ void debug_texture(SDL_Texture *texture) {
 
   dbglogger_printf("\tSIZE: %d x %d \n", w, h);
 }
+
+void debug_font(TTF_Font *font) {
+  dbglogger_printf("TTF_FontHeight          : %d\n", TTF_FontHeight(font));
+  dbglogger_printf("TTF_FontAscent          : %d\n", TTF_FontAscent(font));
+  dbglogger_printf("TTF_FontDescent         : %d\n", TTF_FontDescent(font));
+  dbglogger_printf("TTF_FontLineSkip        : %d\n", TTF_FontLineSkip(font));
+  dbglogger_printf("TTF_FontFaceIsFixedWidth: %d\n",
+                   TTF_FontFaceIsFixedWidth(font));
+
+  dbglogger_printf("TTF_FontFaceFamilyName  : \"%s\"\n",
+                   TTF_FontFaceFamilyName(font));
+  dbglogger_printf("TTF_FontFaceStyleName   : \"%s\"\n",
+                   TTF_FontFaceStyleName(font));
+  if (TTF_GlyphIsProvided(font, 'g')) {
+    int minx, maxx, miny, maxy, advance;
+    TTF_GlyphMetrics(font, 'g', &minx, &maxx, &miny, &maxy, &advance);
+    dbglogger_printf("TTF_GlyphMetrics('g'):\n\tminx=%d\n\tmaxx=%d\n\tminy=%"
+                     "d\n\tmaxy=%d\n\tadvance=%d\n",
+                     minx, maxx, miny, maxy, advance);
+  } else {
+    dbglogger_printf("TTF_GlyphMetrics('g'): unavailable in font!\n");
+  }
+}

@@ -27,3 +27,4 @@ void debug_video();
 void ret2psload();
 void debug_format(int tf);
 void debug_texture(SDL_Texture *texture);
+void debug_font(TTF_Font *font);

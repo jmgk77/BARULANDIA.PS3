@@ -28,6 +28,22 @@ int main(int argc, char **argv) {
   }
 #endif
 
+  TTF_Font *font;
+
+#ifdef USE_TTF
+  if (TTF_Init() == -1) {
+    dbglogger_log("TTF_Init: %s\n", TTF_GetError());
+    return -1;
+  }
+  // Brady Bunch Remastered
+  font = TTF_OpenFont(DATA_PATH "BRADBUNR.TTF", 48);
+  if (!font) {
+    dbglogger_log("TTF_OpenFont: %s\n", TTF_GetError());
+    return -1;
+  }
+  debug_font(font);
+#endif
+
 #ifdef PS3
   // init joystick
   SDL_Joystick *joystick = SDL_JoystickOpen(0);
@@ -248,12 +264,12 @@ int main(int argc, char **argv) {
   // exit confirmation stuff
   bool exit_show = false;
   bool exit_screen = false;
-  SDL_Surface *exit_surface = load_surface(DATA_PATH "EXIT" GRAPH_EXT);
+  SDL_Surface *exit_surface = create_exit_screen(font);
 
-  // exit confirmation stuff
+  // help screen stuff
   bool help_show = false;
   bool help_screen = false;
-  SDL_Surface *help_surface = load_surface(DATA_PATH "HELP" GRAPH_EXT);
+  SDL_Surface *help_surface = create_help_screen(font);
 
   // main loop
   bool active = true;
@@ -509,6 +525,11 @@ int main(int argc, char **argv) {
 
 #ifdef PS3
   SDL_JoystickClose(joystick);
+#endif
+
+#ifdef USE_TTF
+  TTF_CloseFont(font);
+  TTF_Quit();
 #endif
 
 #ifdef USE_PNG

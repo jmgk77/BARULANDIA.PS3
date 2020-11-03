@@ -2,6 +2,8 @@
 
 #define USE_PNG 1
 
+#define USE_TTF 1
+
 //#define DEBUG 1
 
 //#define SKIP_INTRO 1
@@ -24,6 +26,11 @@
 #include <SDL2/SDL_image.h>
 #endif
 
+#ifdef USE_TTF
+#include <SDL2/SDL_ttf.h>
+//#include <SDL2/SDL_gfx.h>
+#endif
+
 #ifdef PS3
 #include <dbglogger.h>
 #include <io/pad.h>
@@ -44,8 +51,10 @@
 
 #include "debug.h"
 #include "floodfill.h"
+#include "screen.h"
 #include "sdl_help.h"
 #include "video.h"
+
 #include <queue>
 
 using namespace std;
