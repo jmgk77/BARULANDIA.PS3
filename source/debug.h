@@ -9,7 +9,7 @@
 #ifndef PS3
 #define dbglogger_init_str(x)
 #define dbglogger_stop(x)
-#define dbglogger_log printf
+#define dbglogger_printf printf
 #define dbglogger_printf printf
 #define dbglogger_screenshot_tmp(x)
 #endif
@@ -17,7 +17,7 @@
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #define dbglogger_init_str(x)
 #define dbglogger_stop(x)
-#define dbglogger_log(...)
+#define dbglogger_printf(...)
 #define dbglogger_printf(...)
 #define dbglogger_screenshot_tmp(x)
 #endif
@@ -28,3 +28,5 @@ void ret2psload();
 void debug_format(int tf);
 void debug_texture(SDL_Texture *texture);
 void debug_font(TTF_Font *font);
+void debug_window(SDL_Window* window);
+void debug_renderer(SDL_Renderer *renderer);

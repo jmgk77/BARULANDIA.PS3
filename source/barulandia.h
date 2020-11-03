@@ -4,7 +4,7 @@
 
 #define USE_TTF 1
 
-//#define DEBUG 1
+#define DEBUG 1
 
 //#define SKIP_INTRO 1
 //#define SKIP_STARTSCREEN 1
@@ -21,6 +21,7 @@
 #endif
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 
 #ifdef USE_PNG
 #include <SDL2/SDL_image.h>

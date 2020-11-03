@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv) {
   dbglogger_init_str("tcp:" DBG_IP ":" DBG_PORT);
-  dbglogger_log("BARULANDIA for ps3 (c) jmgk 2020");
+  dbglogger_printf("BARULANDIA for ps3 (c) jmgk 2020");
 
 #ifdef DEBUG
   atexit(ret2psload);
@@ -13,8 +13,18 @@ int main(int argc, char **argv) {
   // init sdl
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
+
+  SDL_version compiled;
+  SDL_version linked;
+
+  SDL_VERSION(&compiled);
+  SDL_GetVersion(&linked);
+  dbglogger_printf("SDL version %d.%d.%d (%d.%d.%d)\n", compiled.major,
+                   compiled.minor, compiled.patch, linked.major, linked.minor,
+                   linked.patch);
+
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
-    dbglogger_log("SDL_Init: %s", SDL_GetError());
+    dbglogger_printf("SDL_Init: %s", SDL_GetError());
     return -1;
   }
 
@@ -23,7 +33,7 @@ int main(int argc, char **argv) {
   int flags = IMG_INIT_JPG | IMG_INIT_PNG;
   int initted = IMG_Init(flags);
   if ((initted & flags) != flags) {
-    dbglogger_log("IMG_Init: %s\n", IMG_GetError());
+    dbglogger_printf("IMG_Init: %s\n", IMG_GetError());
     return -1;
   }
 #endif
@@ -32,13 +42,13 @@ int main(int argc, char **argv) {
 
 #ifdef USE_TTF
   if (TTF_Init() == -1) {
-    dbglogger_log("TTF_Init: %s\n", TTF_GetError());
+    dbglogger_printf("TTF_Init: %s\n", TTF_GetError());
     return -1;
   }
   // Brady Bunch Remastered
   font = TTF_OpenFont(DATA_PATH "BRADBUNR.TTF", 48);
   if (!font) {
-    dbglogger_log("TTF_OpenFont: %s\n", TTF_GetError());
+    dbglogger_printf("TTF_OpenFont: %s\n", TTF_GetError());
     return -1;
   }
   debug_font(font);
@@ -61,19 +71,21 @@ int main(int argc, char **argv) {
       "BARULANDIA.PS3", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH,
       HEIGHT, SDL_WINDOW_FULLSCREEN);
   if (window == NULL) {
-    dbglogger_log("SDL_CreateWindow: %s\n", SDL_GetError());
+    dbglogger_printf("SDL_CreateWindow: %s\n", SDL_GetError());
     return -1;
   }
 
   SDL_Renderer *renderer =
       SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
   if (renderer == NULL) {
-    dbglogger_log("SDL_CreateRenderer: %s", SDL_GetError());
+    dbglogger_printf("SDL_CreateRenderer: %s", SDL_GetError());
     return -1;
   }
 
   // print info
   debug_video();
+  debug_window(window);
+  debug_renderer(renderer);
 
   // white is our "clear screen' color
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);

@@ -1,14 +1,14 @@
 #include "debug.h"
 
 void debug_joystick(SDL_Joystick *joystick) {
-  dbglogger_log("LX %d LY %d RX %d RY %d",
-                SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX),
-                SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY),
-                SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_RIGHTX),
-                SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_RIGHTY));
+  dbglogger_printf("LX %d LY %d RX %d RY %d",
+                   SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX),
+                   SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY),
+                   SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_RIGHTX),
+                   SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_RIGHTY));
 #define LOG_BTN(X)                                                             \
   if (SDL_JoystickGetButton(joystick, X) == SDL_PRESSED)                       \
-  dbglogger_log(#X)
+  dbglogger_printf(#X)
   LOG_BTN(SDL_CONTROLLER_BUTTON_LEFT);
   LOG_BTN(SDL_CONTROLLER_BUTTON_DOWN);
   LOG_BTN(SDL_CONTROLLER_BUTTON_RIGHT);
@@ -28,7 +28,6 @@ void debug_joystick(SDL_Joystick *joystick) {
 }
 
 void debug_video() {
-  dbglogger_printf("\n");
   int nbDriver = SDL_GetNumRenderDrivers();
 
   for (int i = 0; i < nbDriver; i++) {
@@ -403,5 +402,96 @@ void debug_font(TTF_Font *font) {
                      minx, maxx, miny, maxy, advance);
   } else {
     dbglogger_printf("TTF_GlyphMetrics('g'): unavailable in font!\n");
+  }
+}
+
+void debug_window(SDL_Window *window) {
+  SDL_SysWMinfo info;
+
+  SDL_VERSION(
+      &info.version); /* initialize info structure with SDL version info */
+
+  if (SDL_GetWindowWMInfo(window,
+                          &info)) { /* the call returns true on success */
+    /* success */
+    const char *subsystem = "an unknown system!";
+    switch (info.subsystem) {
+    case SDL_SYSWM_UNKNOWN:
+      break;
+    case SDL_SYSWM_WINDOWS:
+      subsystem = "Microsoft Windows(TM)";
+      break;
+    case SDL_SYSWM_X11:
+      subsystem = "X Window System";
+      break;
+#if SDL_VERSION_ATLEAST(2, 0, 3)
+    case SDL_SYSWM_WINRT:
+      subsystem = "WinRT";
+      break;
+#endif
+    case SDL_SYSWM_DIRECTFB:
+      subsystem = "DirectFB";
+      break;
+    case SDL_SYSWM_COCOA:
+      subsystem = "Apple OS X";
+      break;
+    case SDL_SYSWM_UIKIT:
+      subsystem = "UIKit";
+      break;
+#if SDL_VERSION_ATLEAST(2, 0, 2)
+    case SDL_SYSWM_WAYLAND:
+      subsystem = "Wayland";
+      break;
+    case SDL_SYSWM_MIR:
+      subsystem = "Mir";
+      break;
+#endif
+#if SDL_VERSION_ATLEAST(2, 0, 4)
+    case SDL_SYSWM_ANDROID:
+      subsystem = "Android";
+      break;
+#endif
+#if SDL_VERSION_ATLEAST(2, 0, 5)
+    case SDL_SYSWM_VIVANTE:
+      subsystem = "Vivante";
+      break;
+#endif
+    case SDL_SYSWM_OS2:
+      subsystem = "OS/2";
+      break;
+#if SDL_VERSION_ATLEAST(2, 0, 13)
+    case SDL_SYSWM_HAIKU:
+      subsystem = "HAIKU";
+      break;
+#endif
+    }
+
+    dbglogger_printf("This program is running SDL version %d.%d.%d on %s\n",
+                     (int)info.version.major, (int)info.version.minor,
+                     (int)info.version.patch, subsystem);
+  } else {
+    /* call failed */
+    dbglogger_printf("Couldn't get window information: %s\n", SDL_GetError());
+  }
+}
+
+void debug_renderer(SDL_Renderer *renderer) {
+  SDL_RendererInfo info;
+  SDL_GetRendererInfo(renderer, &info);
+  dbglogger_printf("CURRENT %s (0x%04x): %s %s %s %s\n",
+                   info.name ? info.name : "Invalid driver", info.flags,
+                   (info.flags & SDL_RENDERER_SOFTWARE) ? "software" : "",
+                   (info.flags & SDL_RENDERER_ACCELERATED) ? "accelerated" : "",
+                   (info.flags & SDL_RENDERER_PRESENTVSYNC) ? "vsync" : "",
+                   (info.flags & SDL_RENDERER_TARGETTEXTURE) ? "texture_target"
+                                                             : "");
+
+  dbglogger_printf("\tAVAILABLE TEXTURE FORMATS: %d\n",
+                   info.num_texture_formats);
+  for (Uint32 t = 0; t < info.num_texture_formats; t++) {
+    int tf = info.texture_formats[t];
+
+    dbglogger_printf("[X.%d]\n", t);
+    debug_format(tf);
   }
 }

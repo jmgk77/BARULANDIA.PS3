@@ -2,21 +2,28 @@
 
 SDL_Surface *load_surface(const char *filename) {
   SDL_Surface *tmp;
-  dbglogger_log("RESOURCE: %s", filename);
+  dbglogger_printf("LOADED: %s\n", filename);
 #ifdef USE_PNG
   tmp = IMG_Load(filename);
   if (tmp == NULL) {
-    dbglogger_log("IMG_Load: %s", SDL_GetError());
+    dbglogger_printf("IMG_Load: %s", SDL_GetError());
     return NULL;
   }
 #else
   tmp = SDL_LoadBMP(filename);
   if (tmp == NULL) {
-    dbglogger_log("SDL_LoadBMP: %s", SDL_GetError());
+    dbglogger_printf("SDL_LoadBMP: %s", SDL_GetError());
     return NULL;
   }
 #endif
-  return tmp;
+
+  SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_ARGB32);
+  SDL_Surface *output = SDL_ConvertSurface(tmp, format, 0);
+  SDL_FreeFormat(format);
+
+  SDL_FreeSurface(tmp);
+
+  return output;
 }
 
 SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filename) {
