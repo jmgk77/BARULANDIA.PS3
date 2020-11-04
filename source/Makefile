@@ -1,7 +1,10 @@
-SRCS=barulandia.cpp debug.cpp sdl_help.cpp video.cpp floodfill.cpp screen.cpp
+TARGET  = a.out
+INCLUDE = ../include
+SRCS    = $(wildcard *.cpp)
+FLAGS   = -Wall -O3 `sdl2-config --cflags --libs` -lSDL2 -lSDL2_image -lstdc++ -lSDL2_ttf -lm
 
-a.out: $(SRCS)
-	gcc -Wall -g $(SRCS) `sdl2-config --cflags --libs` -lSDL2 -lSDL2_image -lstdc++ -lSDL2_ttf -lm
+$(TARGET): $(SRCS)
+	gcc $(SRCS) -I$(INCLUDE) $(FLAGS)
 
 clean:
-	rm -f a.out
+	rm -f $(TARGET)
