@@ -1,6 +1,7 @@
 #include "debug.h"
 
 void debug_joystick(SDL_Joystick *joystick) {
+#ifdef DEBUG
   dbglogger_printf("LX %d LY %d RX %d RY %d",
                    SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX),
                    SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY),
@@ -25,9 +26,11 @@ void debug_joystick(SDL_Joystick *joystick) {
   LOG_BTN(SDL_CONTROLLER_BUTTON_L1);
   LOG_BTN(SDL_CONTROLLER_BUTTON_R2);
   LOG_BTN(SDL_CONTROLLER_BUTTON_L2);
+#endif
 }
 
 void debug_video() {
+#ifdef DEBUG
   int nbDriver = SDL_GetNumRenderDrivers();
 
   for (int i = 0; i < nbDriver; i++) {
@@ -50,16 +53,20 @@ void debug_video() {
       debug_format(tf);
     }
   }
+#endif
 }
 
 void ret2psload() {
+#ifdef DEBUG
 #ifdef PS3
   sysProcessExitSpawn2("/dev_hdd0/game/PSL145310/RELOAD.SELF", NULL, NULL, NULL,
                        0, 1001, SYS_PROCESS_SPAWN_STACK_SIZE_1M);
 #endif
+#endif
 }
 
 void debug_format(int tf) {
+#ifdef DEBUG
   const char *s;
   switch (SDL_PIXELTYPE(tf)) {
   case SDL_PIXELTYPE_UNKNOWN:
@@ -215,9 +222,11 @@ void debug_format(int tf) {
   dbglogger_printf("\tUNIQUE FORMAT: %s\n",
                    SDL_ISPIXELFORMAT_FOURCC(tf) ? "TRUE" : "FALSE");
   return;
+#endif
 }
 
 void debug_texture(SDL_Texture *texture) {
+#ifdef DEBUG
   Uint32 format;
   int access, w, h;
 
@@ -380,9 +389,11 @@ void debug_texture(SDL_Texture *texture) {
   dbglogger_printf("\tACCESS: %s\n", s);
 
   dbglogger_printf("\tSIZE: %d x %d \n", w, h);
+#endif
 }
 
 void debug_font(TTF_Font *font) {
+#ifdef DEBUG
   dbglogger_printf("TTF_FontHeight          : %d\n", TTF_FontHeight(font));
   dbglogger_printf("TTF_FontAscent          : %d\n", TTF_FontAscent(font));
   dbglogger_printf("TTF_FontDescent         : %d\n", TTF_FontDescent(font));
@@ -403,9 +414,11 @@ void debug_font(TTF_Font *font) {
   } else {
     dbglogger_printf("TTF_GlyphMetrics('g'): unavailable in font!\n");
   }
+#endif
 }
 
 void debug_window(SDL_Window *window) {
+#ifdef DEBUG
   SDL_SysWMinfo info;
 
   SDL_VERSION(
@@ -473,9 +486,11 @@ void debug_window(SDL_Window *window) {
     /* call failed */
     dbglogger_printf("Couldn't get window information: %s\n", SDL_GetError());
   }
+#endif
 }
 
 void debug_renderer(SDL_Renderer *renderer) {
+#ifdef DEBUG
   SDL_RendererInfo info;
   SDL_GetRendererInfo(renderer, &info);
   dbglogger_printf("CURRENT %s (0x%04x): %s %s %s %s\n",
@@ -494,4 +509,5 @@ void debug_renderer(SDL_Renderer *renderer) {
     dbglogger_printf("[X.%d]\n", t);
     debug_format(tf);
   }
+#endif
 }

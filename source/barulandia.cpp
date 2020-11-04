@@ -28,7 +28,6 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-#ifdef USE_PNG
   // init sdl_image
   int flags = IMG_INIT_JPG | IMG_INIT_PNG;
   int initted = IMG_Init(flags);
@@ -36,34 +35,29 @@ int main(int argc, char **argv) {
     dbglogger_printf("IMG_Init: %s\n", IMG_GetError());
     return -1;
   }
-#endif
 
-  TTF_Font *font;
-
-#ifdef USE_TTF
   if (TTF_Init() == -1) {
     dbglogger_printf("TTF_Init: %s\n", TTF_GetError());
     return -1;
   }
   // Brady Bunch Remastered
-  font = TTF_OpenFont(DATA_PATH "BRADBUNR.TTF", 48);
+  TTF_Font *font = TTF_OpenFont(DATA_PATH "BRADBUNR.TTF", 48);
   if (!font) {
     dbglogger_printf("TTF_OpenFont: %s\n", TTF_GetError());
     return -1;
   }
   debug_font(font);
-#endif
 
-#ifdef PS3
-  // init joystick
-  SDL_Joystick *joystick = SDL_JoystickOpen(0);
-
-  // joystick button state
+  // joystick/keyboard button state
   bool joystick_buttonstate[JOYBUTTONS];
   bool joystick_oldbuttonstate[JOYBUTTONS];
   for (int i = 0; i < JOYBUTTONS; ++i) {
     joystick_oldbuttonstate[i] = joystick_buttonstate[i] = false;
   }
+
+#ifdef PS3
+  // init joystick
+  SDL_Joystick *joystick = SDL_JoystickOpen(0);
 #endif
 
   // init screen
@@ -86,120 +80,6 @@ int main(int argc, char **argv) {
   debug_video();
   debug_window(window);
   debug_renderer(renderer);
-
-  // white is our "clear screen' color
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-
-  /////////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////////
-  // load logo
-  /////////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////////
-#ifndef SKIP_INTRO
-  SDL_Texture *logo = load_texture(renderer, DATA_PATH "LOGO" GRAPH_EXT);
-
-  // fade logo in and out
-  set_alpha_rate(3);
-  fade_in_out(renderer, logo, true, true);
-  fade_in_out(renderer, logo, true, false);
-
-  // free logo
-  SDL_DestroyTexture(logo);
-#endif
-  /////////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////////
-  // load start screen
-  /////////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////////
-#ifndef SKIP_STARTSCREEN
-  SDL_Texture *fundo = load_texture(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
-  SDL_Texture *titulo = load_texture(renderer, DATA_PATH "TITULO" GRAPH_EXT);
-  SDL_Texture *start = load_texture(renderer, DATA_PATH "START" GRAPH_EXT);
-
-  // fade start screen in
-  set_alpha_rate(5);
-  fade_in_out(renderer, fundo, false, true);
-
-  // reset alpha
-  SDL_SetTextureAlphaMod(fundo, SDL_ALPHA_OPAQUE);
-
-  // init positions
-  SDL_Rect t_pos, s_pos;
-
-  int tw, th;
-  SDL_QueryTexture(titulo, NULL, NULL, &tw, &th);
-  t_pos.x = (WIDTH - tw) / 2;
-  t_pos.y = (HEIGHT / 4) * 1;
-  t_pos.w = tw;
-  t_pos.h = th;
-
-  SDL_QueryTexture(start, NULL, NULL, &tw, &th);
-  s_pos.x = (WIDTH - tw) / 2;
-  s_pos.y = (HEIGHT / 4) * 3;
-  s_pos.w = tw;
-  s_pos.h = th;
-
-  int t_pos_x_max = t_pos.x + 50;
-  int t_pos_x_min = t_pos.x - 50;
-  int t_pos_x_delta = -1;
-
-  int s_pos_y_max = s_pos.y + 20;
-  int s_pos_y_min = s_pos.y - 20;
-  int s_pos_y_delta = -1;
-
-  // start screen loop
-  bool start_active = true;
-
-  while (start_active) {
-
-#ifdef PS3
-    if (joystick) {
-      SDL_JoystickUpdate();
-      if (SDL_JoystickGetButton(joystick, SDL_CONTROLLER_BUTTON_START) ==
-          SDL_PRESSED) {
-        start_active = false;
-      }
-    }
-#else
-    SDL_Event e;
-    while (SDL_PollEvent(&e)) {
-      if (e.type == SDL_QUIT) {
-        start_active = false;
-      }
-      if ((e.type == SDL_KEYDOWN) && (e.key.keysym.sym == SDLK_ESCAPE)) {
-        start_active = false;
-      }
-    }
-#endif
-
-    // move
-    t_pos.x += t_pos_x_delta;
-    if ((t_pos.x < t_pos_x_min) || (t_pos.x > t_pos_x_max)) {
-      t_pos_x_delta = -t_pos_x_delta;
-    }
-    s_pos.y += s_pos_y_delta;
-    if ((s_pos.y < s_pos_y_min) || (s_pos.y > s_pos_y_max)) {
-      s_pos_y_delta = -s_pos_y_delta;
-    }
-
-    // clear and paste fundo, titulo, start
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, fundo, NULL, NULL);
-    SDL_RenderCopy(renderer, titulo, NULL, &t_pos);
-    SDL_RenderCopy(renderer, start, NULL, &s_pos);
-
-    // render
-    SDL_RenderPresent(renderer);
-  }
-
-  set_alpha_rate(15);
-  fade_in_out(renderer, fundo, false, false);
-
-  SDL_DestroyTexture(fundo);
-  SDL_DestroyTexture(titulo);
-  SDL_DestroyTexture(start);
-
-#endif
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -233,61 +113,6 @@ int main(int argc, char **argv) {
     redraw = true;                                                             \
   }
 
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-// main loop
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-#ifndef SKIP_MAIN
-  // init cursor
-  SDL_Texture *tcursor = load_texture(renderer, DATA_PATH "CURSOR" GRAPH_EXT);
-
-  int cw, ch;
-  SDL_QueryTexture(tcursor, NULL, NULL, &cw, &ch);
-
-  SDL_Rect cursor;
-  cursor.x = WIDTH / 2;
-  cursor.y = HEIGHT / 2;
-  cursor.w = cw;
-  cursor.h = ch;
-
-  // draw control
-  int draw_current = 0;
-  int draw_new = 0;
-  bool draw_refresh = true;
-
-  // cursor movement
-  int dx = 0;
-  int dy = 0;
-  int accell = 0;
-
-  // load resources
-  SDL_Surface *field = load_surface(DATA_PATH "FIELD" GRAPH_EXT);
-  SDL_Surface *draw = NULL;
-
-  // colors (default green)
-  Uint32 color_current = -1;
-  Uint32 color_new = SDL_MapRGBA(field->format, 0, 255, 0, SDL_ALPHA_OPAQUE);
-
-  // surface to texture
-  bool redraw = true;
-  SDL_Texture *aux = NULL;
-
-  // exit confirmation stuff
-  bool exit_show = false;
-  bool exit_screen = false;
-  SDL_Surface *exit_surface = create_exit_screen(font);
-
-  // help screen stuff
-  bool help_show = false;
-  bool help_screen = false;
-  SDL_Surface *help_surface = create_help_screen(font);
-
-  // main loop
-  bool active = true;
-
-  while (active) {
-
 #define BUTTON_CHANGE(x)                                                       \
   if (joystick_oldbuttonstate[x] != joystick_buttonstate[x])
 #define BUTTON_PRESSED(x)                                                      \
@@ -295,8 +120,97 @@ int main(int argc, char **argv) {
 #define BUTTON_RELEASED(x)                                                     \
   if (joystick_oldbuttonstate[x] && !joystick_buttonstate[x])
 
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  // variables
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  // intro vars
+  SDL_Texture *logo;
+
+  // startscreen vars
+  SDL_Texture *fundo, *titulo, *start;
+  SDL_Rect t_pos, s_pos;
+  int t_pos_x_max, t_pos_x_min, t_pos_x_delta, s_pos_y_max, s_pos_y_min,
+      s_pos_y_delta;
+
+  // main vars
+  SDL_Rect cursor;
+  SDL_Texture *tcursor, *aux;
+  SDL_Surface *field, *draw, *exit_surface, *help_surface;
+  int draw_current, draw_new, dx, dy, accell;
+  Uint32 color_current, color_new;
+  bool draw_refresh, redraw, exit_show, exit_screen, help_show, help_screen;
+
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  // main loop
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  // start screen loop
+  bool start_active = true;
+  int PHASE = INTRO_INIT;
+
+  while (start_active) {
+
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+      if (e.type == SDL_QUIT) {
+        start_active = false;
+      }
+#ifndef PS3
+      // read keyboard state
+      bool keypressed = (e.type == SDL_KEYDOWN) ? true : false;
+      if ((e.type == SDL_KEYUP) || (e.type == SDL_KEYDOWN)) {
+        for (int i = 0; i < JOYBUTTONS; ++i) {
+          joystick_oldbuttonstate[i] = joystick_buttonstate[i];
+        }
+        int keyname;
+        switch (e.key.keysym.sym) {
+        case SDLK_DOWN:
+          keyname = SDL_CONTROLLER_BUTTON_DOWN;
+          break;
+        case SDLK_UP:
+          keyname = SDL_CONTROLLER_BUTTON_UP;
+          break;
+        case SDLK_RIGHT:
+          keyname = SDL_CONTROLLER_BUTTON_RIGHT;
+          break;
+        case SDLK_LEFT:
+          keyname = SDL_CONTROLLER_BUTTON_LEFT;
+          break;
+        case SDLK_1:
+          keyname = SDL_CONTROLLER_BUTTON_START;
+          break;
+        case SDLK_2:
+          keyname = SDL_CONTROLLER_BUTTON_SELECT;
+          break;
+        case SDLK_x:
+          keyname = SDL_CONTROLLER_BUTTON_CROSS;
+          break;
+        case SDLK_z:
+          keyname = SDL_CONTROLLER_BUTTON_CIRCLE;
+          break;
+        case SDLK_LCTRL:
+          keyname = SDL_CONTROLLER_BUTTON_L1;
+          break;
+        case SDLK_RCTRL:
+          keyname = SDL_CONTROLLER_BUTTON_R1;
+          break;
+        default:
+          keyname = -1;
+          break;
+        }
+        if (keyname != -1) {
+          joystick_buttonstate[keyname] = keypressed;
+        }
+      }
+#endif
+    }
 #ifdef PS3
-    // handle joystick for PS3
+    // read joystick state
     if (joystick) {
       SDL_JoystickUpdate();
       /*debug_joystick(joystick);*/
@@ -304,19 +218,172 @@ int main(int argc, char **argv) {
         joystick_oldbuttonstate[i] = joystick_buttonstate[i];
         joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
       }
+    }
+#endif
+    switch (PHASE) {
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+// logo
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+#ifndef SKIP_INTRO
+    case INTRO_INIT: {
+      // white is our "clear screen' color
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+      logo = load_texture(renderer, DATA_PATH "LOGO" GRAPH_EXT);
+      PHASE = INTRO_MAIN;
+    } break;
 
+    case INTRO_MAIN: {
+      // fade logo in and out
+      set_alpha_rate(3);
+      fade_in_out(renderer, logo, true, true);
+      fade_in_out(renderer, logo, true, false);
+      PHASE = INTRO_END;
+    } break;
+
+    case INTRO_END: {
+      // free logo
+      SDL_DestroyTexture(logo);
+      PHASE = START_INIT;
+    } break;
+#endif
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+// start screen
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+#ifndef SKIP_STARTSCREEN
+    case START_INIT: {
+      fundo = load_texture(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
+      titulo = load_texture(renderer, DATA_PATH "TITULO" GRAPH_EXT);
+      start = load_texture(renderer, DATA_PATH "START" GRAPH_EXT);
+
+      // fade start screen in
+      set_alpha_rate(5);
+      fade_in_out(renderer, fundo, false, true);
+
+      // reset alpha
+      SDL_SetTextureAlphaMod(fundo, SDL_ALPHA_OPAQUE);
+
+      // init positions
+      int tw, th;
+      SDL_QueryTexture(titulo, NULL, NULL, &tw, &th);
+      t_pos.x = (WIDTH - tw) / 2;
+      t_pos.y = (HEIGHT / 4) * 1;
+      t_pos.w = tw;
+      t_pos.h = th;
+
+      SDL_QueryTexture(start, NULL, NULL, &tw, &th);
+      s_pos.x = (WIDTH - tw) / 2;
+      s_pos.y = (HEIGHT / 4) * 3;
+      s_pos.w = tw;
+      s_pos.h = th;
+
+      t_pos_x_max = t_pos.x + 50;
+      t_pos_x_min = t_pos.x - 50;
+      t_pos_x_delta = -1;
+
+      s_pos_y_max = s_pos.y + 20;
+      s_pos_y_min = s_pos.y - 20;
+      s_pos_y_delta = -1;
+      PHASE = START_MAIN;
+    } break;
+
+    case START_MAIN: {
+      t_pos.x += t_pos_x_delta;
+      if ((t_pos.x < t_pos_x_min) || (t_pos.x > t_pos_x_max)) {
+        t_pos_x_delta = -t_pos_x_delta;
+      }
+      s_pos.y += s_pos_y_delta;
+      if ((s_pos.y < s_pos_y_min) || (s_pos.y > s_pos_y_max)) {
+        s_pos_y_delta = -s_pos_y_delta;
+      }
+
+      // clear and paste fundo, titulo, start
+      SDL_RenderClear(renderer);
+      SDL_RenderCopy(renderer, fundo, NULL, NULL);
+      SDL_RenderCopy(renderer, titulo, NULL, &t_pos);
+      SDL_RenderCopy(renderer, start, NULL, &s_pos);
+
+      // render
+      SDL_RenderPresent(renderer);
+
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) PHASE = START_END;
+
+    } break;
+
+    case START_END: {
+      set_alpha_rate(15);
+      fade_in_out(renderer, fundo, false, false);
+      SDL_DestroyTexture(fundo);
+      SDL_DestroyTexture(titulo);
+      SDL_DestroyTexture(start);
+      PHASE = MAIN_INIT;
+    } break;
+#endif
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+// main
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+#ifndef SKIP_MAIN
+    case MAIN_INIT: {
+      // init cursor
+      tcursor = load_texture(renderer, DATA_PATH "CURSOR" GRAPH_EXT);
+
+      int cw, ch;
+      SDL_QueryTexture(tcursor, NULL, NULL, &cw, &ch);
+
+      cursor.x = WIDTH / 2;
+      cursor.y = HEIGHT / 2;
+      cursor.w = cw;
+      cursor.h = ch;
+
+      // draw control
+      draw_current = 0;
+      draw_new = 0;
+      draw_refresh = true;
+      redraw = true;
+
+      // cursor movement
+      dx = 0;
+      dy = 0;
+      accell = 0;
+
+      // load resources
+      field = load_surface(DATA_PATH "FIELD" GRAPH_EXT);
+      draw = NULL;
+
+      // colors (default green)
+      color_current = -1;
+      color_new = SDL_MapRGBA(field->format, 0, 255, 0, SDL_ALPHA_OPAQUE);
+
+      // surface to texture
+      aux = NULL;
+
+      // exit confirmation stuff
+      exit_show = false;
+      exit_screen = false;
+      exit_surface = create_exit_screen(font);
+
+      // help screen stuff
+      help_show = false;
+      help_screen = false;
+      help_surface = create_help_screen(font);
+      PHASE = MAIN_MAIN;
+    } break;
+
+    case MAIN_MAIN: {
       // exit screen button (confirm)
       if (exit_show) {
-        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) active = false;
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) PHASE = MAIN_END;
       }
 
       // exit & help screen button (back)
       if (exit_show || help_show) {
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CIRCLE) {
-          exit_show = false;
-          exit_screen = false;
-          help_show = false;
-          help_screen = false;
+          exit_show = exit_screen = help_show = help_screen = false;
           redraw = true;
         }
       } else {
@@ -333,201 +400,137 @@ int main(int argc, char **argv) {
 
         // clicks
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) { CLICK_AREA }
-
-        // update cursor (joystick L)
-        int _x = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
-        int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
-        dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
-        dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
       }
-    }
+
+#ifdef PS3
+      // update cursor (joystick L)
+      int _x = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
+      int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
+      dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
+      dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
 #else
-    // handle sdl events
-    SDL_Event e;
-    while (SDL_PollEvent(&e)) {
-
-      switch (e.type) {
-
-      case SDL_QUIT:
-        exit_show = true;
-        break;
-        // handle keypresses for linux
-      case SDL_KEYDOWN:
-        dbglogger_printf("SDL_KEYDOWN: %s\n", SDL_GetKeyName(e.key.keysym.sym));
-        switch (e.key.keysym.sym) {
-        case SDLK_ESCAPE:
-          exit_show = true;
-          break;
-        // keydown only for continuous input (movement)
-        case SDLK_LEFT:
-          dx = -1;
-          break;
-        case SDLK_RIGHT:
-          dx = 1;
-          break;
-        case SDLK_UP:
-          dy = -1;
-          break;
-        case SDLK_DOWN:
-          dy = 1;
-          break;
-        ////
-        default:
-          break;
-        }
-        break;
-      case SDL_KEYUP:
-        dbglogger_printf("SDL_UP: %s\n", SDL_GetKeyName(e.key.keysym.sym));
-        switch (e.key.keysym.sym) {
-          // cut keydown (movement)
-        case SDLK_LEFT:
-          dx = 0;
-          break;
-        case SDLK_RIGHT:
-          dx = 0;
-          break;
-        case SDLK_UP:
-          dy = 0;
-          break;
-        case SDLK_DOWN:
-          dy = 0;
-          break;
-          ////
-        case SDLK_TAB:
-          help_show = true;
-          break;
-        // Y & N exit screen
-        case SDLK_x:
-          if (exit_show)
-            active = false;
-          break;
-        case SDLK_o:
-          if (exit_show || help_show) {
-            exit_show = false;
-            exit_screen = false;
-            help_show = false;
-            help_screen = false;
-            redraw = true;
-          }
-          break;
-        // L1 & R1
-        case SDLK_LCTRL:
-          draw_new--;
-          break;
-        case SDLK_RCTRL:
-          draw_new++;
-          break;
-          // X
-        case SDLK_SPACE:
-          CLICK_AREA
-          break;
-        default:
-          break;
-        }
-        break;
-      default:
-        break;
-      }
-    }
+      dx = dy = 0;
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_RIGHT) dx = 1;
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_LEFT) dx = -1;
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_DOWN) dy = 1;
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_UP) dy = -1;
 #endif
 
-    // exit screen
-    if ((exit_show) && (!exit_screen)) {
-      SDL_DestroyTexture(aux);
-      aux = SDL_CreateTextureFromSurface(renderer, exit_surface);
-      exit_screen = true;
-    }
+      // start/stop acceleration
+      if (!dx && !dy) {
+        accell = 0;
+      } else {
+        // limit acceleration
+        if (accell < 60) {
+          accell++;
+        }
+      }
 
-    // help screen
-    if ((help_show) && (!help_screen)) {
-      SDL_DestroyTexture(aux);
-      aux = SDL_CreateTextureFromSurface(renderer, help_surface);
-      help_screen = true;
-    }
+      // accelerate cursor
+      cursor.x += dx + (dx * (accell / 10));
+      cursor.y += dy + (dy * (accell / 10));
 
-    // start/stop acceleration
-    if (!dx && !dy) {
-      accell = 0;
-    } else {
-      accell++;
-    }
+      // create exit screen
+      if ((exit_show) && (!exit_screen)) {
+        SDL_DestroyTexture(aux);
+        aux = SDL_CreateTextureFromSurface(renderer, exit_surface);
+        exit_screen = true;
+      }
 
-    // limit acceleration
-    if (accell > 60) {
-      accell = 60;
-    }
+      // create help screen
+      if ((help_show) && (!help_screen)) {
+        SDL_DestroyTexture(aux);
+        aux = SDL_CreateTextureFromSurface(renderer, help_surface);
+        help_screen = true;
+      }
 
-    // accelerate cursor
-    cursor.x += dx + (dx * (accell / 10));
-    cursor.y += dy + (dy * (accell / 10));
+      // nextdraw boundaries check (cicle)
+      draw_new = (draw_new < 0) ? (MAX_DRAW - 1)
+                                : (draw_new == MAX_DRAW) ? 0 : draw_new;
 
-    // nextdraw boundaries check (cicle)
-    draw_new =
-        (draw_new < 0) ? (MAX_DRAW - 1) : (draw_new == MAX_DRAW) ? 0 : draw_new;
+      // screen boundaries check (limit)
+      cursor.x =
+          (cursor.x < 0) ? 0 : (cursor.x >= WIDTH - 1) ? (WIDTH - 1) : cursor.x;
+      cursor.y = (cursor.y < 0)
+                     ? 0
+                     : (cursor.y >= HEIGHT - 1) ? (HEIGHT - 1) : cursor.y;
 
-    // screen boundaries check (limit)
-    cursor.x =
-        (cursor.x < 0) ? 0 : (cursor.x >= WIDTH - 1) ? (WIDTH - 1) : cursor.x;
-    cursor.y =
-        (cursor.y < 0) ? 0 : (cursor.y >= HEIGHT - 1) ? (HEIGHT - 1) : cursor.y;
+      // change/reload current drawing
+      if ((draw_current != draw_new) || (draw_refresh)) {
+        draw_current = draw_new;
+        draw_refresh = false;
 
-    // change/reload current drawing
-    if ((draw_current != draw_new) || (draw_refresh)) {
-      draw_current = draw_new;
-      draw_refresh = false;
+        // free old
+        SDL_FreeSurface(draw);
 
-      // free old
+        // load new
+        char buf[128];
+        snprintf(buf, 128, "%sDRAW%d%s", DATA_PATH, draw_current + 1,
+                 GRAPH_EXT);
+        draw = load_surface(buf);
+
+        // set position
+        SDL_Rect d_pos;
+        d_pos.x = (WIDTH - draw->w) / 2;
+        d_pos.y = 0;
+        d_pos.w = draw->w;
+        d_pos.h = draw->h;
+
+        // paste draw into field
+        SDL_BlitSurface(draw, NULL, field, &d_pos);
+
+        // redo color picker sample
+        color_current = -1;
+        redraw = true;
+      }
+
+      // change current color
+      if (color_current != color_new) {
+        color_current = color_new;
+        floodfill(field, 1000, 650, color_current);
+        redraw = true;
+      }
+
+      // render
+      SDL_RenderClear(renderer);
+      if (redraw) {
+        // recreate aux texture
+        SDL_DestroyTexture(aux);
+        aux = SDL_CreateTextureFromSurface(renderer, field);
+        redraw = false;
+      }
+      SDL_RenderCopy(renderer, aux, NULL, NULL);
+      SDL_RenderCopy(renderer, tcursor, NULL, &cursor);
+      SDL_RenderPresent(renderer);
+    } break;
+
+    case MAIN_END: {
+      // free
       SDL_FreeSurface(draw);
-
-      // load new
-      char buf[128];
-      snprintf(buf, 128, "%sDRAW%d%s", DATA_PATH, draw_current + 1, GRAPH_EXT);
-      draw = load_surface(buf);
-
-      // set position
-      SDL_Rect d_pos;
-      d_pos.x = (WIDTH - draw->w) / 2;
-      d_pos.y = 0;
-      d_pos.w = draw->w;
-      d_pos.h = draw->h;
-
-      // paste draw into field
-      SDL_BlitSurface(draw, NULL, field, &d_pos);
-
-      // redo color picker sample
-      color_current = -1;
-      redraw = true;
-    }
-
-    // change current color
-    if (color_current != color_new) {
-      color_current = color_new;
-      floodfill(field, 1000, 650, color_current);
-      redraw = true;
-    }
-
-    // render
-    SDL_RenderClear(renderer);
-    if (redraw) {
-      // recreate aux texture
+      SDL_FreeSurface(exit_surface);
+      SDL_FreeSurface(help_surface);
+      SDL_FreeSurface(field);
       SDL_DestroyTexture(aux);
-      aux = SDL_CreateTextureFromSurface(renderer, field);
-      redraw = false;
+      SDL_DestroyTexture(tcursor);
+      PHASE = FINISHED;
+    } break;
+#endif
+      /////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////
+      // start screen
+      /////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////
+
+    default: {
+      if (PHASE == FINISHED) {
+        start_active = false;
+      }
+      // if phase isnt implemented, go to next
+      PHASE++;
+    } break;
     }
-    SDL_RenderCopy(renderer, aux, NULL, NULL);
-    SDL_RenderCopy(renderer, tcursor, NULL, &cursor);
-    SDL_RenderPresent(renderer);
   }
 
-  // free
-  SDL_FreeSurface(draw);
-  SDL_FreeSurface(exit_surface);
-  SDL_FreeSurface(help_surface);
-  SDL_FreeSurface(field);
-  SDL_DestroyTexture(aux);
-  SDL_DestroyTexture(tcursor);
-
-#endif
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   // cleanup
@@ -539,14 +542,11 @@ int main(int argc, char **argv) {
   SDL_JoystickClose(joystick);
 #endif
 
-#ifdef USE_TTF
   TTF_CloseFont(font);
   TTF_Quit();
-#endif
 
-#ifdef USE_PNG
   IMG_Quit();
-#endif
+
   SDL_Quit();
   dbglogger_stop();
 

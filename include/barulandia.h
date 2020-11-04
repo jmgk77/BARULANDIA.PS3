@@ -1,36 +1,25 @@
 #pragma once
 
-#define USE_PNG 1
-
-#define USE_TTF 1
-
-#define DEBUG 1
+//#define DEBUG 1
 
 //#define SKIP_INTRO 1
 //#define SKIP_STARTSCREEN 1
 //#define SKIP_MAIN
 
+#if defined SKIP_INTRO || defined SKIP_STARTSCREEN || defined SKIP_MAIN
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
+
 #define MAX_DRAW 10
 
 #define JOYBUTTONS 16
 
-#ifdef USE_PNG
 #define GRAPH_EXT ".PNG"
-#else
-#define GRAPH_EXT ".BMP"
-#endif
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_syswm.h>
-
-#ifdef USE_PNG
 #include <SDL2/SDL_image.h>
-#endif
-
-#ifdef USE_TTF
+#include <SDL2/SDL_syswm.h>
 #include <SDL2/SDL_ttf.h>
-//#include <SDL2/SDL_gfx.h>
-#endif
 
 #ifdef PS3
 #include <dbglogger.h>
@@ -39,11 +28,11 @@
 #include <sys/process.h>
 #include <sysutil/msg.h>
 #include <sysutil/sysutil.h>
-#define DATA_PATH "/dev_hdd0/game/SDL20BARU/USRDIR/"
+#endif
 
+#ifdef PS3
+#define DATA_PATH "/dev_hdd0/game/SDL20BARU/USRDIR/"
 #else
-#undef SDL_FULLSCREEN
-#define SDL_FULLSCREEN 0
 #define DATA_PATH "../release/USRDIR/"
 #endif
 
@@ -59,3 +48,16 @@
 #include <queue>
 
 using namespace std;
+
+#define INTRO_INIT 1
+#define INTRO_MAIN 2
+#define INTRO_END 3
+#define START_INIT 4
+#define START_MAIN 5
+#define START_END 6
+#define MAIN_INIT 7
+#define MAIN_MAIN 8
+#define MAIN_END 9
+#define FINISHED 10
+
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"

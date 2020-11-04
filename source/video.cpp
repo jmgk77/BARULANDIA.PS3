@@ -3,19 +3,11 @@
 SDL_Surface *load_surface(const char *filename) {
   SDL_Surface *tmp;
   dbglogger_printf("LOADED: %s\n", filename);
-#ifdef USE_PNG
   tmp = IMG_Load(filename);
   if (tmp == NULL) {
     dbglogger_printf("IMG_Load: %s", SDL_GetError());
     return NULL;
   }
-#else
-  tmp = SDL_LoadBMP(filename);
-  if (tmp == NULL) {
-    dbglogger_printf("SDL_LoadBMP: %s", SDL_GetError());
-    return NULL;
-  }
-#endif
 
   SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_ARGB32);
   SDL_Surface *output = SDL_ConvertSurface(tmp, format, 0);

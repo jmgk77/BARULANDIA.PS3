@@ -71,9 +71,6 @@ int fill_rounded_box_b(SDL_Surface *dst, int xo, int yo, int w, int h, int r,
 #define MARGIN_Y (HEIGHT / 6)
 
 SDL_Surface *create_exit_screen(TTF_Font *font) {
-#ifndef USE_TTF
-  return load_surface(DATA_PATH "EXIT" GRAPH_EXT);
-#else
   SDL_Surface *field = load_surface(DATA_PATH "FUNDO" GRAPH_EXT);
   SDL_Surface *buttons = load_surface(DATA_PATH "BUTTONS" GRAPH_EXT);
 
@@ -117,13 +114,10 @@ SDL_Surface *create_exit_screen(TTF_Font *font) {
   SDL_FreeSurface(buttons);
 
   return field;
-#endif
 }
 
 SDL_Surface *create_help_screen(TTF_Font *font) {
-#ifndef USE_TTF
-  return load_surface(DATA_PATH "HELP" GRAPH_EXT);
-#else
+
   SDL_Surface *field = load_surface(DATA_PATH "FUNDO" GRAPH_EXT);
   SDL_Surface *buttons = load_surface(DATA_PATH "BUTTONS" GRAPH_EXT);
 
@@ -217,6 +211,4 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   SDL_FreeSurface(buttons);
 
   return field;
-
-#endif
 }
