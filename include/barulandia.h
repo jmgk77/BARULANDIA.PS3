@@ -2,8 +2,8 @@
 
 #define DEBUG 1
 
-#define SKIP_INTRO 1
-#define SKIP_STARTSCREEN 1
+//#define SKIP_INTRO 1
+//#define SKIP_STARTSCREEN 1
 //#define SKIP_MAIN
 
 #if defined SKIP_INTRO || defined SKIP_STARTSCREEN || defined SKIP_MAIN
@@ -20,6 +20,8 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_syswm.h>
 #include <SDL2/SDL_ttf.h>
+
+#include <mikmod.h>
 
 #ifdef PS3
 #include <dbglogger.h>
@@ -41,10 +43,11 @@
 
 #include "debug.h"
 #include "floodfill.h"
+#include "save.h"
 #include "screen.h"
 #include "sdl_help.h"
+#include "sound.h"
 #include "video.h"
-#include "save.h"
 
 #include <queue>
 #include <time.h>

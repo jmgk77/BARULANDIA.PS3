@@ -15,15 +15,12 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
 
   SDL_version compiled;
-  SDL_version linked;
 
   SDL_VERSION(&compiled);
-  SDL_GetVersion(&linked);
-  dbglogger_printf("SDL version %d.%d.%d (%d.%d.%d)\n", compiled.major,
-                   compiled.minor, compiled.patch, linked.major, linked.minor,
-                   linked.patch);
+  dbglogger_printf("SDL version %d.%d.%d\n", compiled.major, compiled.minor,
+                   compiled.patch);
 
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_AUDIO) < 0) {
     dbglogger_printf("SDL_Init: %s", SDL_GetError());
     return -1;
   }
@@ -46,7 +43,10 @@ int main(int argc, char **argv) {
     dbglogger_printf("TTF_OpenFont: %s\n", TTF_GetError());
     return -1;
   }
-  debug_font(font);
+  /*debug_font(font);*/
+
+  // mikmod init
+  sound_init();
 
   // joystick/keyboard button state
   bool joystick_buttonstate[JOYBUTTONS];
@@ -77,9 +77,9 @@ int main(int argc, char **argv) {
   }
 
   // print info
-  debug_video();
+  /*debug_video();
   debug_window(window);
-  debug_renderer(renderer);
+  debug_renderer(renderer);*/
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -242,6 +242,7 @@ int main(int argc, char **argv) {
       // fade logo in and out
       set_alpha_rate(3);
       fade_in_out(renderer, logo, true, true);
+      effect_play(SOUND_LOGO);
       fade_in_out(renderer, logo, true, false);
       PHASE = INTRO_END;
     } break;
@@ -538,6 +539,8 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   SDL_DestroyRenderer(renderer);
+
+  sound_end();
 
 #ifdef PS3
   SDL_JoystickClose(joystick);

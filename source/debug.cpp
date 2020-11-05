@@ -511,3 +511,10 @@ void debug_renderer(SDL_Renderer *renderer) {
   }
 #endif
 }
+
+void debug_audio() {
+#ifdef DEBUG
+  dbglogger_printf("Init %s\n", MikMod_InfoDriver());
+  dbglogger_printf("Loader %s\n", MikMod_InfoLoader());
+#endif
+}

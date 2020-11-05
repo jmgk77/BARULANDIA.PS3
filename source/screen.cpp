@@ -141,7 +141,7 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   srcrect.w = BUTTONS_XY;
   srcrect.h = BUTTONS_XY;
 
-  //title
+  // title
   dstrect.x = (field->w - t9->w - BUTTONS_XY) / 2;
   dstrect.y = (MARGIN_Y * 5) - (MARGIN_Y / 2);
   srcrect.x = CIRCLE_X * BUTTONS_XY;
@@ -154,10 +154,10 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   SDL_BlitSurface(t1, NULL, field, &dstrect);
 
 #define ROW_SPACING (MARGIN_Y * 0.45)
-#define COLUMN_SPACING  (BUTTONS_XY * 7.5)
+#define COLUMN_SPACING (BUTTONS_XY * 7.6)
 #define COLUMN_SPACING2 (BUTTONS_XY * 6)
 
-  //move
+  // move
   srcrect.x = L_X * BUTTONS_XY;
   srcrect.y = L_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
@@ -166,7 +166,7 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   dstrect.x += COLUMN_SPACING;
   SDL_BlitSurface(t2, NULL, field, &dstrect);
 
-  //paint
+  // paint
   srcrect.x = CROSS_X * BUTTONS_XY;
   srcrect.y = CROSS_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
@@ -175,7 +175,7 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   dstrect.x += COLUMN_SPACING;
   SDL_BlitSurface(t3, NULL, field, &dstrect);
 
-  //save
+  // save
   srcrect.x = TRIANGLE_X * BUTTONS_XY;
   srcrect.y = TRIANGLE_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
@@ -184,7 +184,7 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   dstrect.x += COLUMN_SPACING;
   SDL_BlitSurface(t6, NULL, field, &dstrect);
 
-  //help
+  // help
   srcrect.x = SELECT_X * BUTTONS_XY;
   srcrect.y = SELECT_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
@@ -193,7 +193,7 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   dstrect.x += COLUMN_SPACING;
   SDL_BlitSurface(t1, NULL, field, &dstrect);
 
-  //exit
+  // exit
   srcrect.x = START_X * BUTTONS_XY;
   srcrect.y = START_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
@@ -202,7 +202,7 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   dstrect.x += COLUMN_SPACING;
   SDL_BlitSurface(t7, NULL, field, &dstrect);
 
-  //prev draw
+  // prev draw
   srcrect.x = L1_X * BUTTONS_XY;
   srcrect.y = L1_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
@@ -211,7 +211,7 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   dstrect.x += COLUMN_SPACING2;
   SDL_BlitSurface(t4, NULL, field, &dstrect);
 
-  //next draw
+  // next draw
   srcrect.x = R1_X * BUTTONS_XY;
   srcrect.y = R1_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;

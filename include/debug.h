@@ -28,5 +28,6 @@ void ret2psload();
 void debug_format(int tf);
 void debug_texture(SDL_Texture *texture);
 void debug_font(TTF_Font *font);
-void debug_window(SDL_Window* window);
+void debug_window(SDL_Window *window);
 void debug_renderer(SDL_Renderer *renderer);
+void debug_audio();
