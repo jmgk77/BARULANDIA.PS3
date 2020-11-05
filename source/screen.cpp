@@ -126,8 +126,9 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   SDL_Surface *t1 = TTF_RenderText_Blended(font, "AJUDA", fg);
   SDL_Surface *t2 = TTF_RenderText_Blended(font, "MOVER", fg);
   SDL_Surface *t3 = TTF_RenderText_Blended(font, "PINTAR", fg);
-  SDL_Surface *t4 = TTF_RenderText_Blended(font, "ANTERIOR", fg);
-  SDL_Surface *t5 = TTF_RenderText_Blended(font, "PROXIMO", fg);
+  SDL_Surface *t4 = TTF_RenderText_Blended(font, "DESENHO ANTERIOR", fg);
+  SDL_Surface *t5 = TTF_RenderText_Blended(font, "PROXIMO DESENHO", fg);
+  SDL_Surface *t6 = TTF_RenderText_Blended(font, "SALVAR", fg);
   SDL_Surface *t7 = TTF_RenderText_Blended(font, "SAIR", fg);
   SDL_Surface *t9 = TTF_RenderText_Blended(font, "VOLTAR", fg);
 
@@ -140,6 +141,7 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   srcrect.w = BUTTONS_XY;
   srcrect.h = BUTTONS_XY;
 
+  //title
   dstrect.x = (field->w - t9->w - BUTTONS_XY) / 2;
   dstrect.y = (MARGIN_Y * 5) - (MARGIN_Y / 2);
   srcrect.x = CIRCLE_X * BUTTONS_XY;
@@ -151,53 +153,71 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   dstrect.y = MARGIN_Y;
   SDL_BlitSurface(t1, NULL, field, &dstrect);
 
-  //
+#define ROW_SPACING (MARGIN_Y * 0.45)
+#define COLUMN_SPACING  (BUTTONS_XY * 7.5)
+#define COLUMN_SPACING2 (BUTTONS_XY * 6)
+
+  //move
   srcrect.x = L_X * BUTTONS_XY;
   srcrect.y = L_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
-  dstrect.y += MARGIN_Y / 2;
+  dstrect.y += ROW_SPACING;
   SDL_BlitSurface(buttons, &srcrect, field, &dstrect);
-  dstrect.x += (BUTTONS_XY * 8);
+  dstrect.x += COLUMN_SPACING;
   SDL_BlitSurface(t2, NULL, field, &dstrect);
 
+  //paint
   srcrect.x = CROSS_X * BUTTONS_XY;
   srcrect.y = CROSS_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
-  dstrect.y += MARGIN_Y / 2;
+  dstrect.y += ROW_SPACING;
   SDL_BlitSurface(buttons, &srcrect, field, &dstrect);
-  dstrect.x += (BUTTONS_XY * 8);
+  dstrect.x += COLUMN_SPACING;
   SDL_BlitSurface(t3, NULL, field, &dstrect);
 
+  //save
+  srcrect.x = TRIANGLE_X * BUTTONS_XY;
+  srcrect.y = TRIANGLE_Y * BUTTONS_XY;
+  dstrect.x = field->w / 4;
+  dstrect.y += ROW_SPACING;
+  SDL_BlitSurface(buttons, &srcrect, field, &dstrect);
+  dstrect.x += COLUMN_SPACING;
+  SDL_BlitSurface(t6, NULL, field, &dstrect);
+
+  //help
   srcrect.x = SELECT_X * BUTTONS_XY;
   srcrect.y = SELECT_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
-  dstrect.y += MARGIN_Y / 2;
+  dstrect.y += ROW_SPACING;
   SDL_BlitSurface(buttons, &srcrect, field, &dstrect);
-  dstrect.x += (BUTTONS_XY * 8);
+  dstrect.x += COLUMN_SPACING;
   SDL_BlitSurface(t1, NULL, field, &dstrect);
 
+  //exit
   srcrect.x = START_X * BUTTONS_XY;
   srcrect.y = START_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
-  dstrect.y += MARGIN_Y / 2;
+  dstrect.y += ROW_SPACING;
   SDL_BlitSurface(buttons, &srcrect, field, &dstrect);
-  dstrect.x += (BUTTONS_XY * 8);
+  dstrect.x += COLUMN_SPACING;
   SDL_BlitSurface(t7, NULL, field, &dstrect);
 
+  //prev draw
   srcrect.x = L1_X * BUTTONS_XY;
   srcrect.y = L1_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
-  dstrect.y += MARGIN_Y / 2;
+  dstrect.y += ROW_SPACING;
   SDL_BlitSurface(buttons, &srcrect, field, &dstrect);
-  dstrect.x += (BUTTONS_XY * 8);
+  dstrect.x += COLUMN_SPACING2;
   SDL_BlitSurface(t4, NULL, field, &dstrect);
 
+  //next draw
   srcrect.x = R1_X * BUTTONS_XY;
   srcrect.y = R1_Y * BUTTONS_XY;
   dstrect.x = field->w / 4;
-  dstrect.y += MARGIN_Y / 2;
+  dstrect.y += ROW_SPACING;
   SDL_BlitSurface(buttons, &srcrect, field, &dstrect);
-  dstrect.x += (BUTTONS_XY * 8);
+  dstrect.x += COLUMN_SPACING2;
   SDL_BlitSurface(t5, NULL, field, &dstrect);
 
   // free

@@ -1,9 +1,9 @@
 #pragma once
 
-//#define DEBUG 1
+#define DEBUG 1
 
-//#define SKIP_INTRO 1
-//#define SKIP_STARTSCREEN 1
+#define SKIP_INTRO 1
+#define SKIP_STARTSCREEN 1
 //#define SKIP_MAIN
 
 #if defined SKIP_INTRO || defined SKIP_STARTSCREEN || defined SKIP_MAIN
@@ -44,8 +44,10 @@
 #include "screen.h"
 #include "sdl_help.h"
 #include "video.h"
+#include "save.h"
 
 #include <queue>
+#include <time.h>
 
 using namespace std;
 

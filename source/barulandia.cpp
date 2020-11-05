@@ -162,8 +162,8 @@ int main(int argc, char **argv) {
       }
 #ifndef PS3
       // read keyboard state
-      bool keypressed = (e.type == SDL_KEYDOWN) ? true : false;
       if ((e.type == SDL_KEYUP) || (e.type == SDL_KEYDOWN)) {
+        bool keypressed = (e.type == SDL_KEYDOWN) ? true : false;
         for (int i = 0; i < JOYBUTTONS; ++i) {
           joystick_oldbuttonstate[i] = joystick_buttonstate[i];
         }
@@ -187,6 +187,9 @@ int main(int argc, char **argv) {
         case SDLK_2:
           keyname = SDL_CONTROLLER_BUTTON_SELECT;
           break;
+        case SDLK_c:
+          keyname = SDL_CONTROLLER_BUTTON_TRIANGLE;
+          break;
         case SDLK_x:
           keyname = SDL_CONTROLLER_BUTTON_CROSS;
           break;
@@ -203,6 +206,7 @@ int main(int argc, char **argv) {
           keyname = -1;
           break;
         }
+        // simulate joystick input
         if (keyname != -1) {
           joystick_buttonstate[keyname] = keypressed;
         }
@@ -341,15 +345,11 @@ int main(int argc, char **argv) {
       cursor.h = ch;
 
       // draw control
-      draw_current = 0;
-      draw_new = 0;
-      draw_refresh = true;
-      redraw = true;
+      draw_current = draw_new = 0;
+      draw_refresh = redraw = true;
 
       // cursor movement
-      dx = 0;
-      dy = 0;
-      accell = 0;
+      dx = dy = accell = 0;
 
       // load resources
       field = load_surface(DATA_PATH "FIELD" GRAPH_EXT);
@@ -363,13 +363,11 @@ int main(int argc, char **argv) {
       aux = NULL;
 
       // exit confirmation stuff
-      exit_show = false;
-      exit_screen = false;
+      exit_show = exit_screen = false;
       exit_surface = create_exit_screen(font);
 
       // help screen stuff
-      help_show = false;
-      help_screen = false;
+      help_show = help_screen = false;
       help_surface = create_help_screen(font);
       PHASE = MAIN_MAIN;
     } break;
@@ -397,6 +395,9 @@ int main(int argc, char **argv) {
         // change drawing
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_L1) draw_new--;
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_R1) draw_new++;
+
+        // save drawing
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_TRIANGLE) save_png(field);
 
         // clicks
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) { CLICK_AREA }
