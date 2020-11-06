@@ -6,10 +6,13 @@
 //#define SKIP_STARTSCREEN 1
 //#define SKIP_MAIN
 
-#define USE_MIKMOD
+//#define USE_MIKMOD
+
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 #if defined SKIP_INTRO || defined SKIP_STARTSCREEN || defined SKIP_MAIN
 #pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif
 
 #define MAX_DRAW 10
@@ -67,4 +70,3 @@ using namespace std;
 #define MAIN_END 9
 #define FINISHED 10
 
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"

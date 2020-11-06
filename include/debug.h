@@ -14,7 +14,6 @@
 #define dbglogger_screenshot_tmp(x)
 #endif
 #else
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #define dbglogger_init_str(x)
 #define dbglogger_stop(x)
 #define dbglogger_printf(...)

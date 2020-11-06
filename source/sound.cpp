@@ -8,7 +8,9 @@ void effect_play(int index) {
   char buf[128];
   snprintf(buf, 128, "%sSOUND%d.WAV", DATA_PATH, index);
   dbglogger_printf("PLAYING: %s\n", buf);
+
 #ifdef USE_MIKMOD
+  // mikmod
   SAMPLE *wave = Sample_Load(buf);
   if (!wave) {
     dbglogger_printf("Could not load: %s\n", MikMod_strerror(MikMod_errno));
@@ -23,6 +25,7 @@ void effect_play(int index) {
 
   Sample_Free(wave);
 #else
+  // sdl
   SDL_AudioSpec wave;
   Uint8 *wavBuffer;
   Uint32 wavLength;
@@ -40,6 +43,7 @@ void effect_play(int index) {
 
 void sound_init() {
 #ifdef USE_MIKMOD
+  // mikmod
   dbglogger_printf("MikMod version %ld.%ld.%ld\n", LIBMIKMOD_VERSION_MAJOR,
                    LIBMIKMOD_VERSION_MINOR, LIBMIKMOD_REVISION);
 
@@ -59,11 +63,15 @@ void sound_init() {
   MikMod_EnableOutput();
   debug_audio();
 #else
+  // sdl
   SDL_AudioSpec want, have;
   SDL_zero(want);
-
-  deviceId =
-      SDL_OpenAudioDevice(NULL, 0, &want, &have, SDL_AUDIO_ALLOW_ANY_CHANGE);
+  // avoid PS3's default AUDIO_F32MSB
+  want.format = AUDIO_S16LSB;
+  want.freq = 16000;
+  // mono
+  want.channels = 1;
+  deviceId = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
   if (deviceId == 0) {
     dbglogger_printf("Failed to open audio: %s", SDL_GetError());
   }
