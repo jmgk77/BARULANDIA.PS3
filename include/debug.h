@@ -31,3 +31,4 @@ void debug_font(TTF_Font *font);
 void debug_window(SDL_Window *window);
 void debug_renderer(SDL_Renderer *renderer);
 void debug_audio();
+void debug_audio_spec(SDL_AudioSpec *a);

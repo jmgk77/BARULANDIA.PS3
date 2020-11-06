@@ -6,6 +6,8 @@
 //#define SKIP_STARTSCREEN 1
 //#define SKIP_MAIN
 
+#define USE_MIKMOD
+
 #if defined SKIP_INTRO || defined SKIP_STARTSCREEN || defined SKIP_MAIN
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
