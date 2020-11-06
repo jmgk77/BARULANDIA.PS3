@@ -483,7 +483,6 @@ void debug_window(SDL_Window *window) {
                      (int)info.version.major, (int)info.version.minor,
                      (int)info.version.patch, subsystem);
   } else {
-    /* call failed */
     dbglogger_printf("Couldn't get window information: %s\n", SDL_GetError());
   }
 #endif
@@ -516,5 +515,85 @@ void debug_audio() {
 #ifdef DEBUG
   dbglogger_printf("Init %s\n", MikMod_InfoDriver());
   dbglogger_printf("Loader %s\n", MikMod_InfoLoader());
+#endif
+}
+
+void debug_audio_spec(SDL_AudioSpec *a) {
+#ifdef DEBUG
+  dbglogger_printf("freq %d\n", a->freq);
+  const char *s;
+  switch (a->format) {
+  case AUDIO_S8:
+    s = "AUDIO_S8";
+    break;
+  case AUDIO_U8:
+    s = "AUDIO_U8";
+    break;
+  case AUDIO_S16LSB:
+    s = "AUDIO_S16LSB";
+    break;
+  case AUDIO_S16MSB:
+    s = "AUDIO_S16MSB";
+    break;
+    /*  case AUDIO_S16SYS:
+        s = "AUDIO_S16SYS";
+        break;
+      case AUDIO_S16:
+        s = "AUDIO_S16";
+        break;
+      case AUDIO_S16LSB:
+        s = "AUDIO_S16LSB";
+        break;*/
+  case AUDIO_U16LSB:
+    s = "AUDIO_U16LSB";
+    break;
+  case AUDIO_U16MSB:
+    s = "AUDIO_U16MSB";
+    break;
+    /*  case AUDIO_U16SYS:
+        s = "AUDIO_U16SYS";
+        break;
+      case AUDIO_U16:
+        s = "AUDIO_U16";
+        break;
+      case AUDIO_U16LSB:
+        s = "AUDIO_U16LSB";
+        break;*/
+  case AUDIO_S32LSB:
+    s = "AUDIO_S32LSB";
+    break;
+  case AUDIO_S32MSB:
+    s = "AUDIO_S32MSB";
+    break;
+    /*  case AUDIO_S32SYS:
+        s = "AUDIO_S32SYS";
+        break;
+      case AUDIO_S32:
+        s = "AUDIO_S32";
+        break;
+      case AUDIO_S32LSB:
+        s = "AUDIO_S32LSB";
+        break;*/
+  case AUDIO_F32LSB:
+    s = "AUDIO_F32LSB";
+    break;
+  case AUDIO_F32MSB:
+    s = "AUDIO_F32MSB";
+    break;
+    /*  case AUDIO_F32SYS:
+        s = "AUDIO_F32SYS";
+        break;
+      case AUDIO_F32:
+        s = "AUDIO_F32";
+        break;
+      case AUDIO_F32LSB:
+        s = "AUDIO_F32LSB";
+        break;*/
+  }
+  dbglogger_printf("format %s\n", s);
+  dbglogger_printf("channels %d\n", a->channels);
+  dbglogger_printf("silence %d\n", a->silence);
+  dbglogger_printf("samples %d\n", a->samples);
+  dbglogger_printf("size %d\n", a->size);
 #endif
 }
