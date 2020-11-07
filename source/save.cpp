@@ -13,8 +13,22 @@ int do_save_png(void *screen) {
            t->tm_sec, GRAPH_EXT);
   dbglogger_printf("THREAD SAVING: %s\n", buf);
 
+  SDL_Rect content;
+  content.x = (WIDTH - 576) / 2;
+  content.y = 0;
+  content.w = 576;
+  content.h = 720;
+
+  // avoid lots of casts...
+  SDL_Surface *in = (SDL_Surface *)screen;
+  SDL_Surface *out = SDL_CreateRGBSurface(
+      0, content.w, content.h, in->format->BitsPerPixel, in->format->Rmask,
+      in->format->Gmask, in->format->Bmask, in->format->Amask);
+  SDL_BlitSurface(in, &content, out, NULL);
+
   // undocumented SDL_Image function...
-  IMG_SavePNG((SDL_Surface *)screen, buf);
+  IMG_SavePNG(out, buf);
+  SDL_FreeSurface(out);
 
   return 0;
 }
