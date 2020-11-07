@@ -4,3 +4,9 @@
 build/
 a.out
 *.txt
+
+MSVC/.vs/*
+MSVC/x64/*
+*.user
+*.dll
+*.exe
