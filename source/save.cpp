@@ -15,12 +15,18 @@ int do_save_png(void *screen) {
 
   // undocumented SDL_Image function...
   IMG_SavePNG((SDL_Surface *)screen, buf);
+
   return 0;
 }
 
-void save_png(SDL_Surface *screen) {
-
+void save_png(SDL_Renderer *renderer, SDL_Surface *screen) {
   SDL_Thread *thread = SDL_CreateThread(do_save_png, "SAVE_PNG", screen);
+
+  effect_play(SOUND_CLICK);
+
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  SDL_RenderClear(renderer);
+  SDL_RenderPresent(renderer);
 
   if (thread == NULL) {
     dbglogger_printf("SDL_CreateThread failed: %s\n", SDL_GetError());

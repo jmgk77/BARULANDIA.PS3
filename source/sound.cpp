@@ -30,8 +30,11 @@ void effect_play(int index) {
   Uint8 *wavBuffer;
   Uint32 wavLength;
 
-  if (SDL_LoadWAV(buf, &wave, &wavBuffer, &wavLength) == NULL) {
+  SDL_AudioSpec *t = SDL_LoadWAV(buf, &wave, &wavBuffer, &wavLength);
+  // check wave.format becoz PS3 SDL dont report error
+  if ((t == NULL) /*||(!wave.format)*/) {
     fprintf(stderr, "Could not open %s: %s\n", buf, SDL_GetError());
+    return;
   }
   debug_audio_spec(&wave);
   SDL_QueueAudio(deviceId, wavBuffer, wavLength);

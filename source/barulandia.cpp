@@ -95,8 +95,11 @@ int main(int argc, char **argv) {
   CURSOR_AREA(955, 17, 1110, 147) {              /*next draw*/                 \
     draw_new++;                                                                \
   }                                                                            \
-  CURSOR_AREA(172, 565, 322, 707) { draw_refresh = true; } /*refresh draw*/    \
-  CURSOR_AREA(172, 408, 322, 538) {                        /*eraser*/          \
+  CURSOR_AREA(172, 565, 322, 707) { /*refresh draw*/                           \
+    effect_play(SOUND_TRASH);                                                  \
+    draw_refresh = true;                                                       \
+  }                                                                            \
+  CURSOR_AREA(172, 408, 322, 538) { /*eraser*/                                 \
     color_new = SDL_MapRGBA(field->format, 255, 255, 255, SDL_ALPHA_OPAQUE);   \
   }                                                                            \
   CURSOR_AREA(955, 408, 1110, 538) {} /*paint tool*/                           \
@@ -240,7 +243,7 @@ int main(int argc, char **argv) {
 
     case INTRO_MAIN: {
       // fade logo in and out
-      set_alpha_rate(3);
+      set_alpha_rate(64);
       fade_in_out(renderer, logo, true, true);
       effect_play(SOUND_LOGO);
       fade_in_out(renderer, logo, true, false);
@@ -265,7 +268,7 @@ int main(int argc, char **argv) {
       start = load_texture(renderer, DATA_PATH "START" GRAPH_EXT);
 
       // fade start screen in
-      set_alpha_rate(5);
+      set_alpha_rate(30);
       fade_in_out(renderer, fundo, false, true);
 
       // reset alpha
@@ -319,7 +322,7 @@ int main(int argc, char **argv) {
     } break;
 
     case START_END: {
-      set_alpha_rate(15);
+      set_alpha_rate(30);
       fade_in_out(renderer, fundo, false, false);
       SDL_DestroyTexture(fundo);
       SDL_DestroyTexture(titulo);
@@ -388,17 +391,24 @@ int main(int argc, char **argv) {
       } else {
         // normal buttons...
         // show exit screen
-        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) exit_show = true;
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) {
+          exit_show = true;
+          effect_play(SOUND_PING);
+        };
 
         // show help screen
-        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_SELECT) help_show = true;
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_SELECT) {
+          help_show = true;
+          effect_play(SOUND_PING);
+        };
 
         // change drawing
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_L1) draw_new--;
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_R1) draw_new++;
 
         // save drawing
-        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_TRIANGLE) save_png(field);
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_TRIANGLE)
+        save_png(renderer, field);
 
         // clicks
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) { CLICK_AREA }
@@ -470,6 +480,9 @@ int main(int argc, char **argv) {
         snprintf(buf, 128, "%sDRAW%d%s", DATA_PATH, draw_current + 1,
                  GRAPH_EXT);
         draw = load_surface(buf);
+
+        // play sound effect
+        effect_play(draw_current + 1);
 
         // set position
         SDL_Rect d_pos;
