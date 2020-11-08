@@ -7,6 +7,6 @@
 *.user
 a.out
 build/
-MSVC/.vs/*
-MSVC/x64/*
+.vs/*
+x64/*
 release/USRDIR/SAVEDATA/*

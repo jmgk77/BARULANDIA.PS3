@@ -90,24 +90,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\source\barulandia.cpp" />
-    <ClCompile Include="..\source\debug.cpp" />
-    <ClCompile Include="..\source\floodfill.cpp" />
-    <ClCompile Include="..\source\save.cpp" />
-    <ClCompile Include="..\source\screen.cpp" />
-    <ClCompile Include="..\source\sdl_help.cpp" />
-    <ClCompile Include="..\source\sound.cpp" />
-    <ClCompile Include="..\source\video.cpp" />
+    <ClCompile Include=".\source\barulandia.cpp" />
+    <ClCompile Include=".\source\debug.cpp" />
+    <ClCompile Include=".\source\floodfill.cpp" />
+    <ClCompile Include=".\source\save.cpp" />
+    <ClCompile Include=".\source\screen.cpp" />
+    <ClCompile Include=".\source\sdl_help.cpp" />
+    <ClCompile Include=".\source\sound.cpp" />
+    <ClCompile Include=".\source\video.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\barulandia.h" />
-    <ClInclude Include="..\include\debug.h" />
-    <ClInclude Include="..\include\floodfill.h" />
-    <ClInclude Include="..\include\save.h" />
-    <ClInclude Include="..\include\screen.h" />
-    <ClInclude Include="..\include\sdl_help.h" />
-    <ClInclude Include="..\include\sound.h" />
-    <ClInclude Include="..\include\video.h" />
+    <ClInclude Include=".\include\barulandia.h" />
+    <ClInclude Include=".\include\debug.h" />
+    <ClInclude Include=".\include\floodfill.h" />
+    <ClInclude Include=".\include\save.h" />
+    <ClInclude Include=".\include\screen.h" />
+    <ClInclude Include=".\include\sdl_help.h" />
+    <ClInclude Include=".\include\sound.h" />
+    <ClInclude Include=".\include\video.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
