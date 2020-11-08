@@ -1,7 +1,12 @@
+*.dll
 *.elf
-*.self
+*.exe
 *.pkg
-build/
-a.out
+*.self
 *.txt
-release/USRDIR/SAVEDATA/
+*.user
+a.out
+build/
+MSVC/.vs/*
+MSVC/x64/*
+release/USRDIR/SAVEDATA/*

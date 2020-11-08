@@ -26,7 +26,9 @@
 #include <SDL2/SDL_syswm.h>
 #include <SDL2/SDL_ttf.h>
 
+#ifdef MIKMOD
 #include <mikmod.h>
+#endif
 
 #ifdef PS3
 #include <dbglogger.h>
