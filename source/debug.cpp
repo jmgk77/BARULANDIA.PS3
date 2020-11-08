@@ -2,14 +2,14 @@
 
 void debug_joystick(SDL_Joystick *joystick) {
 #ifdef DEBUG
-  dbglogger_printf("LX %d LY %d RX %d RY %d",
+  dbglogger_printf("LX %d LY %d RX %d RY %d\n",
                    SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX),
                    SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY),
                    SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_RIGHTX),
                    SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_RIGHTY));
 #define LOG_BTN(X)                                                             \
   if (SDL_JoystickGetButton(joystick, X) == SDL_PRESSED)                       \
-  dbglogger_printf(#X)
+  dbglogger_printf(#X "\n")
   LOG_BTN(SDL_CONTROLLER_BUTTON_LEFT);
   LOG_BTN(SDL_CONTROLLER_BUTTON_DOWN);
   LOG_BTN(SDL_CONTROLLER_BUTTON_RIGHT);

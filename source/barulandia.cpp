@@ -55,10 +55,8 @@ int main(int argc, char **argv) {
     joystick_oldbuttonstate[i] = joystick_buttonstate[i] = false;
   }
 
-#ifdef PS3
   // init joystick
   SDL_Joystick *joystick = SDL_JoystickOpen(0);
-#endif
 
   // init screen
   SDL_Window *window = SDL_CreateWindow(
@@ -168,6 +166,7 @@ int main(int argc, char **argv) {
       // read keyboard state
       if ((e.type == SDL_KEYUP) || (e.type == SDL_KEYDOWN)) {
         bool keypressed = (e.type == SDL_KEYDOWN) ? true : false;
+        // save joystick status
         for (int i = 0; i < JOYBUTTONS; ++i) {
           joystick_oldbuttonstate[i] = joystick_buttonstate[i];
         }
@@ -226,7 +225,7 @@ int main(int argc, char **argv) {
       }
 #endif
     }
-#ifdef PS3
+
     // read joystick state
     if (joystick) {
       SDL_JoystickUpdate();
@@ -236,7 +235,7 @@ int main(int argc, char **argv) {
         joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
       }
     }
-#endif
+
     switch (PHASE) {
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
@@ -438,14 +437,14 @@ int main(int argc, char **argv) {
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) { CLICK_AREA }
       }
 
-#ifdef PS3
       // update cursor (joystick L)
       int _x = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
       int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
       dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
       dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
-#else
-      dx = dy = 0;
+
+#ifndef PS3
+      //dx = dy = 0;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_RIGHT) dx = 1;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_LEFT) dx = -1;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_DOWN) dy = 1;
@@ -587,9 +586,7 @@ int main(int argc, char **argv) {
 
   sound_end();
 
-#ifdef PS3
   SDL_JoystickClose(joystick);
-#endif
 
   TTF_CloseFont(font);
   TTF_Quit();
