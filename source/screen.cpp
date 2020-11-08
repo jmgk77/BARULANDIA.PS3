@@ -76,9 +76,9 @@ SDL_Surface *create_exit_screen(TTF_Font *font) {
 
   SDL_Color fg = {255, 0, 0, SDL_ALPHA_OPAQUE};
 
-  SDL_Surface *t1 = TTF_RenderText_Blended(font, "VOCE DESEJA SAIR?", fg);
-  SDL_Surface *t2 = TTF_RenderText_Blended(font, "SAIR", fg);
-  SDL_Surface *t3 = TTF_RenderText_Blended(font, "VOLTAR", fg);
+  SDL_Surface *t1 = TTF_RenderUTF8_Blended(font, "VOCÊ DESEJA SAIR?", fg);
+  SDL_Surface *t2 = TTF_RenderUTF8_Blended(font, "SAIR", fg);
+  SDL_Surface *t3 = TTF_RenderUTF8_Blended(font, "VOLTAR", fg);
 
   fill_rounded_box_b(
       exit_screen, MARGIN_X, MARGIN_Y, exit_screen->w - (MARGIN_X * 2),
@@ -123,14 +123,14 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
 
   SDL_Color fg = {255, 0, 0, SDL_ALPHA_OPAQUE};
 
-  SDL_Surface *t1 = TTF_RenderText_Blended(font, "AJUDA", fg);
-  SDL_Surface *t2 = TTF_RenderText_Blended(font, "MOVER", fg);
-  SDL_Surface *t3 = TTF_RenderText_Blended(font, "PINTAR", fg);
-  SDL_Surface *t4 = TTF_RenderText_Blended(font, "DESENHO ANTERIOR", fg);
-  SDL_Surface *t5 = TTF_RenderText_Blended(font, "PROXIMO DESENHO", fg);
-  SDL_Surface *t6 = TTF_RenderText_Blended(font, "SALVAR", fg);
-  SDL_Surface *t7 = TTF_RenderText_Blended(font, "SAIR", fg);
-  SDL_Surface *t9 = TTF_RenderText_Blended(font, "VOLTAR", fg);
+  SDL_Surface *t1 = TTF_RenderUTF8_Blended(font, "AJUDA", fg);
+  SDL_Surface *t2 = TTF_RenderUTF8_Blended(font, "MOVER", fg);
+  SDL_Surface *t3 = TTF_RenderUTF8_Blended(font, "PINTAR", fg);
+  SDL_Surface *t4 = TTF_RenderUTF8_Blended(font, "DESENHO ANTERIOR", fg);
+  SDL_Surface *t5 = TTF_RenderUTF8_Blended(font, "PRÓXIMO DESENHO", fg);
+  SDL_Surface *t6 = TTF_RenderUTF8_Blended(font, "SALVAR", fg);
+  SDL_Surface *t7 = TTF_RenderUTF8_Blended(font, "SAIR", fg);
+  SDL_Surface *t9 = TTF_RenderUTF8_Blended(font, "VOLTAR", fg);
 
   fill_rounded_box_b(
       help_screen, MARGIN_X, MARGIN_Y, help_screen->w - (MARGIN_X * 2),
@@ -240,9 +240,16 @@ SDL_Surface *create_credit_screen(TTF_Font *font) {
 
   SDL_Color fg = {255, 0, 0, SDL_ALPHA_OPAQUE};
 
-  SDL_Surface *t1 = TTF_RenderText_Blended(font, "CREDITOS", fg);
-  //  SDL_Surface *t7 = TTF_RenderText_Blended(font, "SAIR", fg);
-  SDL_Surface *t9 = TTF_RenderText_Blended(font, "VOLTAR", fg);
+  SDL_Surface *t1 = TTF_RenderUTF8_Blended(font, "CRÉDITOS", fg);
+  SDL_Surface *t2 = TTF_RenderUTF8_Blended(
+      font, "BARULÂNDIA FABIANA C RIECHEL GONZÁLEZ KLEIN", fg);
+  SDL_Surface *t3 =
+      TTF_RenderUTF8_Blended(font, "DESENHOS RICARDO TOMASELLI", fg);
+  SDL_Surface *t4 =
+      TTF_RenderUTF8_Blended(font, "PROGRAMAÇÃO JULIÁN M GONZÁLEZ KLEIN", fg);
+  SDL_Surface *t5 = TTF_RenderUTF8_Blended(
+      font, "BETATEST MARCELA RIECHEL GONZÁLEZ KLEIN", fg);
+  SDL_Surface *t9 = TTF_RenderUTF8_Blended(font, "VOLTAR", fg);
 
   fill_rounded_box_b(
       credit_screen, MARGIN_X, MARGIN_Y, credit_screen->w - (MARGIN_X * 2),
@@ -251,8 +258,6 @@ SDL_Surface *create_credit_screen(TTF_Font *font) {
 
   SDL_Rect dstrect;
   SDL_Rect srcrect;
-  srcrect.w = BUTTONS_XY;
-  srcrect.h = BUTTONS_XY;
 
   // title
   dstrect.x = (credit_screen->w - t9->w - BUTTONS_XY) / 2;
@@ -265,6 +270,20 @@ SDL_Surface *create_credit_screen(TTF_Font *font) {
   dstrect.x = (credit_screen->w - t1->w) / 2;
   dstrect.y = MARGIN_Y;
   SDL_BlitSurface(t1, NULL, credit_screen, &dstrect);
-  //***
+
+  // creditos
+  dstrect.x = (credit_screen->w - t2->w) / 2;
+  dstrect.y = MARGIN_Y * 2;
+  SDL_BlitSurface(t2, NULL, credit_screen, &dstrect);
+  dstrect.x = (credit_screen->w - t3->w) / 2;
+  dstrect.y += MARGIN_Y / 2;
+  SDL_BlitSurface(t3, NULL, credit_screen, &dstrect);
+  dstrect.x = (credit_screen->w - t4->w) / 2;
+  dstrect.y += MARGIN_Y / 2;
+  SDL_BlitSurface(t4, NULL, credit_screen, &dstrect);
+  dstrect.x = (credit_screen->w - t5->w) / 2;
+  dstrect.y += MARGIN_Y / 2;
+  SDL_BlitSurface(t5, NULL, credit_screen, &dstrect);
+
   return credit_screen;
 }
