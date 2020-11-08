@@ -38,3 +38,4 @@
 
 SDL_Surface *create_exit_screen(TTF_Font *font);
 SDL_Surface *create_help_screen(TTF_Font *font);
+SDL_Surface *create_credit_screen(TTF_Font *font);

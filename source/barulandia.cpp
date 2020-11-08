@@ -141,10 +141,11 @@ int main(int argc, char **argv) {
   // main vars
   SDL_Rect cursor;
   SDL_Texture *tcursor, *aux;
-  SDL_Surface *field, *draw, *exit_surface, *help_surface;
+  SDL_Surface *field, *draw, *exit_surface, *help_surface, *credit_surface;
   int draw_current, draw_new, dx, dy, accell;
   Uint32 color_current, color_new;
-  bool draw_refresh, redraw, exit_show, exit_screen, help_show, help_screen;
+  bool draw_refresh, redraw, exit_show, exit_screen, help_show, help_screen,
+      credit_show, credit_screen;
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -199,11 +200,20 @@ int main(int argc, char **argv) {
         case SDLK_z:
           keyname = SDL_CONTROLLER_BUTTON_CIRCLE;
           break;
+        case SDLK_v:
+          keyname = SDL_CONTROLLER_BUTTON_SQUARE;
+          break;
         case SDLK_LCTRL:
           keyname = SDL_CONTROLLER_BUTTON_L1;
           break;
         case SDLK_RCTRL:
           keyname = SDL_CONTROLLER_BUTTON_R1;
+          break;
+        case SDLK_LSHIFT:
+          keyname = SDL_CONTROLLER_BUTTON_L2;
+          break;
+        case SDLK_RSHIFT:
+          keyname = SDL_CONTROLLER_BUTTON_R2;
           break;
         default:
           keyname = -1;
@@ -373,6 +383,11 @@ int main(int argc, char **argv) {
       // help screen stuff
       help_show = help_screen = false;
       help_surface = create_help_screen(font);
+
+      // credit screen stuff
+      credit_show = credit_screen = false;
+      credit_surface = create_credit_screen(font);
+
       PHASE = MAIN_MAIN;
     } break;
 
@@ -383,9 +398,10 @@ int main(int argc, char **argv) {
       }
 
       // exit & help screen button (back)
-      if (exit_show || help_show) {
+      if (exit_show || help_show || credit_show) {
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CIRCLE) {
-          exit_show = exit_screen = help_show = help_screen = false;
+          exit_show = exit_screen = help_show = help_screen = credit_show =
+              credit_screen = false;
           redraw = true;
         }
       } else {
@@ -399,6 +415,14 @@ int main(int argc, char **argv) {
         // show help screen
         BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_SELECT) {
           help_show = true;
+          effect_play(SOUND_PING);
+        };
+
+        // show credit screen
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_R2)
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_L2)
+        BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_SQUARE) {
+          credit_show = true;
           effect_play(SOUND_PING);
         };
 
@@ -442,18 +466,25 @@ int main(int argc, char **argv) {
       cursor.x += dx + (dx * (accell / 10));
       cursor.y += dy + (dy * (accell / 10));
 
-      // create exit screen
+      // show exit screen
       if ((exit_show) && (!exit_screen)) {
         SDL_DestroyTexture(aux);
         aux = SDL_CreateTextureFromSurface(renderer, exit_surface);
         exit_screen = true;
       }
 
-      // create help screen
+      // show help screen
       if ((help_show) && (!help_screen)) {
         SDL_DestroyTexture(aux);
         aux = SDL_CreateTextureFromSurface(renderer, help_surface);
         help_screen = true;
+      }
+
+      // show help screen
+      if ((credit_show) && (!credit_screen)) {
+        SDL_DestroyTexture(aux);
+        aux = SDL_CreateTextureFromSurface(renderer, credit_surface);
+        credit_screen = true;
       }
 
       // nextdraw boundaries check (cicle)
@@ -524,6 +555,7 @@ int main(int argc, char **argv) {
       SDL_FreeSurface(draw);
       SDL_FreeSurface(exit_surface);
       SDL_FreeSurface(help_surface);
+      SDL_FreeSurface(credit_surface);
       SDL_FreeSurface(field);
       SDL_DestroyTexture(aux);
       SDL_DestroyTexture(tcursor);
