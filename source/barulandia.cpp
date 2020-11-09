@@ -123,6 +123,7 @@ int main(int argc, char **argv) {
       (!joystick_oldbuttonstate[y] && joystick_buttonstate[y]))
 #define BUTTON_RELEASED(x)                                                     \
   if (joystick_oldbuttonstate[x] && !joystick_buttonstate[x])
+#define BUTTON_PRESSED_CONT(x) if (joystick_buttonstate[x])
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -167,76 +168,43 @@ int main(int argc, char **argv) {
       if (e.type == SDL_QUIT) {
         start_active = false;
       }
-#ifndef PS3
-      // read keyboard state
-      if ((e.type == SDL_KEYUP) || (e.type == SDL_KEYDOWN)) {
-        bool keypressed = (e.type == SDL_KEYDOWN) ? true : false;
-        // save joystick status
-        for (int i = 0; i < JOYBUTTONS; ++i) {
-          joystick_oldbuttonstate[i] = joystick_buttonstate[i];
-        }
-        int keyname;
-        switch (e.key.keysym.sym) {
-        case SDLK_DOWN:
-          keyname = SDL_CONTROLLER_BUTTON_DOWN;
-          break;
-        case SDLK_UP:
-          keyname = SDL_CONTROLLER_BUTTON_UP;
-          break;
-        case SDLK_RIGHT:
-          keyname = SDL_CONTROLLER_BUTTON_RIGHT;
-          break;
-        case SDLK_LEFT:
-          keyname = SDL_CONTROLLER_BUTTON_LEFT;
-          break;
-        case SDLK_1:
-          keyname = SDL_CONTROLLER_BUTTON_START;
-          break;
-        case SDLK_2:
-          keyname = SDL_CONTROLLER_BUTTON_SELECT;
-          break;
-        case SDLK_c:
-          keyname = SDL_CONTROLLER_BUTTON_TRIANGLE;
-          break;
-        case SDLK_x:
-          keyname = SDL_CONTROLLER_BUTTON_CROSS;
-          break;
-        case SDLK_z:
-          keyname = SDL_CONTROLLER_BUTTON_CIRCLE;
-          break;
-        case SDLK_v:
-          keyname = SDL_CONTROLLER_BUTTON_SQUARE;
-          break;
-        case SDLK_LCTRL:
-          keyname = SDL_CONTROLLER_BUTTON_L1;
-          break;
-        case SDLK_RCTRL:
-          keyname = SDL_CONTROLLER_BUTTON_R1;
-          break;
-        case SDLK_LSHIFT:
-          keyname = SDL_CONTROLLER_BUTTON_L2;
-          break;
-        case SDLK_RSHIFT:
-          keyname = SDL_CONTROLLER_BUTTON_R2;
-          break;
-        default:
-          keyname = -1;
-          break;
-        }
-        // simulate joystick input
-        if (keyname != -1) {
-          joystick_buttonstate[keyname] = keypressed;
-        }
-      }
-#endif
     }
+
+    // save old joystick status and reset state
+    for (int i = 0; i < JOYBUTTONS; ++i) {
+      joystick_oldbuttonstate[i] = joystick_buttonstate[i];
+      joystick_buttonstate[i] = false;
+    }
+
+    // convert keyboard state to joystick state
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
+#define KEYB_CONVERT(j, k)                                                     \
+  if (state[k]) {                                                              \
+    joystick_buttonstate[j] = true;                                            \
+  }
+
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_TRIANGLE, SDL_SCANCODE_W);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_CROSS, SDL_SCANCODE_Z);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_CIRCLE, SDL_SCANCODE_S);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_SQUARE, SDL_SCANCODE_A);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_L1, SDL_SCANCODE_LCTRL);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_R1, SDL_SCANCODE_RCTRL);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_L2, SDL_SCANCODE_LSHIFT);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_R2, SDL_SCANCODE_RSHIFT);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_DOWN, SDL_SCANCODE_DOWN);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_UP, SDL_SCANCODE_UP);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_RIGHT, SDL_SCANCODE_RIGHT);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_LEFT, SDL_SCANCODE_LEFT);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_START, SDL_SCANCODE_1);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_SELECT, SDL_SCANCODE_2)
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_R3, SDL_SCANCODE_RALT);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_L3, SDL_SCANCODE_LALT);
 
     // read joystick state
     if (joystick) {
       SDL_JoystickUpdate();
       /*debug_joystick(joystick);*/
       for (int i = 0; i < JOYBUTTONS; ++i) {
-        joystick_oldbuttonstate[i] = joystick_buttonstate[i];
         joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
       }
     }
@@ -368,8 +336,10 @@ int main(int argc, char **argv) {
       SDL_RenderPresent(renderer);
 
       // choose option
-      int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
-      dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
+      if (joystick) {
+        int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
+        dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
+      }
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_DOWN) dy = 1;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_UP) dy = -1;
 
@@ -520,29 +490,31 @@ int main(int argc, char **argv) {
       }
 
       // update cursor (joystick L)
-      int _x = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
-      int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
-      dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
-      dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
+      if (joystick) {
+        int _x = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
+        int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
+        dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
+        dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
+      }
 
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_RIGHT) dx = 1;
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_LEFT) dx = -1;
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_DOWN) dy = 1;
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_UP) dy = -1;
+      BUTTON_PRESSED_CONT(SDL_CONTROLLER_BUTTON_RIGHT) dx = 1;
+      BUTTON_PRESSED_CONT(SDL_CONTROLLER_BUTTON_LEFT) dx = -1;
+      BUTTON_PRESSED_CONT(SDL_CONTROLLER_BUTTON_DOWN) dy = 1;
+      BUTTON_PRESSED_CONT(SDL_CONTROLLER_BUTTON_UP) dy = -1;
 
       // start/stop acceleration
       if (!dx && !dy) {
         accell = 0;
       } else {
         // limit acceleration
-        if (accell < 60) {
+        if (accell < 64) {
           accell++;
         }
       }
 
       // accelerate cursor
-      cursor.x += dx + (dx * (accell / 10));
-      cursor.y += dy + (dy * (accell / 10));
+      cursor.x += dx + (dx * (accell / 8));
+      cursor.y += dy + (dy * (accell / 8));
 
       // show exit screen
       if ((exit_show) && (!exit_screen)) {
@@ -665,7 +637,9 @@ int main(int argc, char **argv) {
 
   sound_end();
 
-  SDL_JoystickClose(joystick);
+  if (joystick) {
+    SDL_JoystickClose(joystick);
+  }
 
   TTF_CloseFont(font);
   TTF_Quit();
