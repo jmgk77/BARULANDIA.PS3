@@ -118,6 +118,9 @@ int main(int argc, char **argv) {
   if (joystick_oldbuttonstate[x] != joystick_buttonstate[x])
 #define BUTTON_PRESSED(x)                                                      \
   if (!joystick_oldbuttonstate[x] && joystick_buttonstate[x])
+#define BUTTON_PRESSED_ALT(x, y)                                               \
+  if ((!joystick_oldbuttonstate[x] && joystick_buttonstate[x]) ||              \
+      (!joystick_oldbuttonstate[y] && joystick_buttonstate[y]))
 #define BUTTON_RELEASED(x)                                                     \
   if (joystick_oldbuttonstate[x] && !joystick_buttonstate[x])
 
@@ -131,10 +134,12 @@ int main(int argc, char **argv) {
   SDL_Texture *logo;
 
   // startscreen vars
-  SDL_Texture *fundo, *titulo, *start;
-  SDL_Rect t_pos, s_pos;
+  SDL_Texture *fundo, *titulo, *start, *gallery;
+  SDL_Rect t_pos, s_pos, g_pos;
   int t_pos_x_max, t_pos_x_min, t_pos_x_delta, s_pos_y_max, s_pos_y_min,
-      s_pos_y_delta;
+      s_pos_xy_delta, g_pos_y_max, g_pos_y_min, g_pos_xy_delta;
+  bool start_gallery;
+  int next_phase;
 
   // main vars
   SDL_Rect cursor;
@@ -275,6 +280,7 @@ int main(int argc, char **argv) {
       fundo = load_texture(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
       titulo = load_texture(renderer, DATA_PATH "TITULO" GRAPH_EXT);
       start = load_texture(renderer, DATA_PATH "START" GRAPH_EXT);
+      gallery = load_texture(renderer, DATA_PATH "GALERIA" GRAPH_EXT);
 
       // fade start screen in
       set_alpha_rate(30);
@@ -297,24 +303,58 @@ int main(int argc, char **argv) {
       s_pos.w = tw;
       s_pos.h = th;
 
+      SDL_QueryTexture(gallery, NULL, NULL, &tw, &th);
+      g_pos.x = (WIDTH - tw) / 2;
+      g_pos.y = (HEIGHT / 4) * 3.5;
+      g_pos.w = tw;
+      g_pos.h = th;
+
+      // title position and delta
       t_pos_x_max = t_pos.x + 50;
       t_pos_x_min = t_pos.x - 50;
       t_pos_x_delta = -1;
 
-      s_pos_y_max = s_pos.y + 20;
-      s_pos_y_min = s_pos.y - 20;
-      s_pos_y_delta = -1;
+      // start position and delta
+      s_pos_y_max = s_pos.y + 3;
+      s_pos_y_min = s_pos.y - 3;
+      s_pos_xy_delta = 1;
+
+      // gallery position and delta
+      g_pos_y_max = g_pos.y + 3;
+      g_pos_y_min = g_pos.y - 3;
+      g_pos_xy_delta = 1;
+
+      // play is default
+      start_gallery = true;
+
       PHASE = START_MAIN;
     } break;
 
     case START_MAIN: {
+      // title move
       t_pos.x += t_pos_x_delta;
       if ((t_pos.x < t_pos_x_min) || (t_pos.x > t_pos_x_max)) {
         t_pos_x_delta = -t_pos_x_delta;
       }
-      s_pos.y += s_pos_y_delta;
-      if ((s_pos.y < s_pos_y_min) || (s_pos.y > s_pos_y_max)) {
-        s_pos_y_delta = -s_pos_y_delta;
+
+      // start move
+      if (start_gallery) {
+        s_pos.x += s_pos_xy_delta;
+        s_pos.y += s_pos_xy_delta;
+        s_pos.w += -(s_pos_xy_delta * 2);
+        s_pos.h += -(s_pos_xy_delta * 2);
+        if ((s_pos.y < s_pos_y_min) || (s_pos.y > s_pos_y_max)) {
+          s_pos_xy_delta = -s_pos_xy_delta;
+        }
+      } else {
+        // gallery move
+        g_pos.x += g_pos_xy_delta;
+        g_pos.y += g_pos_xy_delta;
+        g_pos.w += -(g_pos_xy_delta * 2);
+        g_pos.h += -(g_pos_xy_delta * 2);
+        if ((g_pos.y < g_pos_y_min) || (g_pos.y > g_pos_y_max)) {
+          g_pos_xy_delta = -g_pos_xy_delta;
+        }
       }
 
       // clear and paste fundo, titulo, start
@@ -322,11 +362,33 @@ int main(int argc, char **argv) {
       SDL_RenderCopy(renderer, fundo, NULL, NULL);
       SDL_RenderCopy(renderer, titulo, NULL, &t_pos);
       SDL_RenderCopy(renderer, start, NULL, &s_pos);
+      SDL_RenderCopy(renderer, gallery, NULL, &g_pos);
 
       // render
       SDL_RenderPresent(renderer);
 
-      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_START) PHASE = START_END;
+      int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
+      dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
+#ifndef PS3
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_DOWN) dy = 1;
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_UP) dy = -1;
+#endif
+
+      // flip
+      if (dy) {
+        start_gallery = !start_gallery;
+      }
+
+      // start next
+      BUTTON_PRESSED_ALT(SDL_CONTROLLER_BUTTON_START,
+                         SDL_CONTROLLER_BUTTON_CROSS) {
+        if (start_gallery) {
+          next_phase = MAIN_INIT;
+        } else {
+          next_phase = GALLERY_INIT;
+        }
+        PHASE = START_END;
+      }
 
     } break;
 
@@ -336,7 +398,28 @@ int main(int argc, char **argv) {
       SDL_DestroyTexture(fundo);
       SDL_DestroyTexture(titulo);
       SDL_DestroyTexture(start);
-      PHASE = MAIN_INIT;
+      PHASE = next_phase;
+    } break;
+#endif
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+// gallery
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+#ifndef SKIP_GALLERY
+    case GALLERY_INIT: {
+      dbglogger_printf("GALLERY_INIT\n");
+      PHASE = GALLERY_MAIN;
+    } break;
+
+    case GALLERY_MAIN: {
+      dbglogger_printf("GALLERY_MAIN\n");
+      PHASE = GALLERY_END;
+    } break;
+
+    case GALLERY_END: {
+      dbglogger_printf("GALLERY_END\n");
+      PHASE = START_INIT;
     } break;
 #endif
 /////////////////////////////////////////////////////////////////////////////
@@ -444,7 +527,6 @@ int main(int argc, char **argv) {
       dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
 
 #ifndef PS3
-      //dx = dy = 0;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_RIGHT) dx = 1;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_LEFT) dx = -1;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_DOWN) dy = 1;
@@ -558,7 +640,7 @@ int main(int argc, char **argv) {
       SDL_FreeSurface(field);
       SDL_DestroyTexture(aux);
       SDL_DestroyTexture(tcursor);
-      PHASE = FINISHED;
+      PHASE = START_INIT;
     } break;
 #endif
       /////////////////////////////////////////////////////////////////////////////

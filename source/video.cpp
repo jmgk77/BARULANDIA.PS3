@@ -34,7 +34,7 @@ SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filename) {
   //
   SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
 
-  debug_texture(texture);
+  /*debug_texture(texture);*/
 
   return texture;
 }

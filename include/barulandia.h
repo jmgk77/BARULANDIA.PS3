@@ -2,8 +2,9 @@
 
 #define DEBUG 1
 
-//#define SKIP_INTRO 1
-//#define SKIP_STARTSCREEN 1
+//#define SKIP_INTRO
+//#define SKIP_STARTSCREEN
+//#define SKIP_GALLERY
 //#define SKIP_MAIN
 
 //#define USE_MIKMOD
@@ -67,8 +68,11 @@ using namespace std;
 #define START_INIT 4
 #define START_MAIN 5
 #define START_END 6
-#define MAIN_INIT 7
-#define MAIN_MAIN 8
-#define MAIN_END 9
+#define GALLERY_INIT 7
+#define GALLERY_MAIN 8
+#define GALLERY_END 9
+#define MAIN_INIT 10
+#define MAIN_MAIN 11
+#define MAIN_END 12
 #define FINISHED 10
 
