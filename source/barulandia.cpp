@@ -336,9 +336,10 @@ int main(int argc, char **argv) {
       SDL_RenderPresent(renderer);
 
       // choose option
+      dy = 0;
       if (joystick) {
         int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
-        dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
+        dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : dy;
       }
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_DOWN) dy = 1;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_UP) dy = -1;
@@ -490,11 +491,12 @@ int main(int argc, char **argv) {
       }
 
       // update cursor (joystick L)
+      dx = dy = 0;
       if (joystick) {
         int _x = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTX);
         int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
-        dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
-        dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
+        dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : dx;
+        dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : dx;
       }
 
       BUTTON_PRESSED_CONT(SDL_CONTROLLER_BUTTON_RIGHT) dx = 1;
