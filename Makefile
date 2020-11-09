@@ -33,7 +33,7 @@ CONTENTID	:=	UP0001-$(APPID)_00-0000000000000000
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS		=	-O3 -Wall -mcpu=cell $(MACHDEP) $(INCLUDE) -DPS3 -lpthread -D_REENTRANT
+CFLAGS		=	-O3 -Wall -mcpu=cell $(MACHDEP) $(INCLUDE) -DPS3
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS		=	$(MACHDEP) -Wl,-Map,$(notdir $@).map
@@ -42,7 +42,7 @@ LDFLAGS		=	$(MACHDEP) -Wl,-Map,$(notdir $@).map
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
 LIBS	:=	 -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ldbglogger \
-			-ltiff -lpngdec -lpng -ljpeg -ljpgdec -lvorbisfile -lvorbis -logg -laudio -lmikmod -lm \
+			-ltiff -lpngdec -lpng -ljpeg -ljpgdec -lvorbisfile -lvorbis -logg -laudio -lm \
 			-lfreetype -lz -lpixman-1 -lSDL2main -lrsx -lgcm_sys -lio -lsysutil -lrt -llv2 -lnet \
 			-lhttputil -lsysmodule
 

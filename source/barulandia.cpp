@@ -367,12 +367,11 @@ int main(int argc, char **argv) {
       // render
       SDL_RenderPresent(renderer);
 
+      // choose option
       int _y = SDL_JoystickGetAxis(joystick, SDL_CONTROLLER_AXIS_LEFTY);
       dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
-#ifndef PS3
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_DOWN) dy = 1;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_UP) dy = -1;
-#endif
 
       // flip
       if (dy) {
@@ -526,12 +525,10 @@ int main(int argc, char **argv) {
       dx = (_x > AXIS_DEADZONE) ? 1 : (_x < -AXIS_DEADZONE) ? -1 : 0;
       dy = (_y > AXIS_DEADZONE) ? 1 : (_y < -AXIS_DEADZONE) ? -1 : 0;
 
-#ifndef PS3
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_RIGHT) dx = 1;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_LEFT) dx = -1;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_DOWN) dy = 1;
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_UP) dy = -1;
-#endif
 
       // start/stop acceleration
       if (!dx && !dy) {

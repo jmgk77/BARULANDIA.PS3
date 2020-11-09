@@ -511,15 +511,6 @@ void debug_renderer(SDL_Renderer *renderer) {
 #endif
 }
 
-void debug_audio() {
-#ifdef DEBUG
-#ifdef MIKMOD
-  dbglogger_printf("Init %s\n", MikMod_InfoDriver());
-  dbglogger_printf("Loader %s\n", MikMod_InfoLoader());
-#endif
-#endif
-}
-
 void debug_audio_spec(SDL_AudioSpec *a) {
 #ifdef DEBUG
   dbglogger_printf("freq %d\n", a->freq);

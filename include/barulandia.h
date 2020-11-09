@@ -7,8 +7,6 @@
 //#define SKIP_GALLERY
 //#define SKIP_MAIN
 
-//#define USE_MIKMOD
-
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 #if defined SKIP_INTRO || defined SKIP_STARTSCREEN || defined SKIP_MAIN
@@ -26,10 +24,6 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_syswm.h>
 #include <SDL2/SDL_ttf.h>
-
-#ifdef MIKMOD
-#include <mikmod.h>
-#endif
 
 #ifdef PS3
 #include <dbglogger.h>

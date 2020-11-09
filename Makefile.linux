@@ -2,7 +2,7 @@ DIR = ./build
 TARGET  = $(DIR)/BARULANDIA.PS3.linux
 INCLUDE = ./include
 SRCS    = $(wildcard ./source/*.cpp)
-FLAGS   = -o$(TARGET) -Wall -O3 `sdl2-config --cflags --libs` `libmikmod-config --cflags --libs` -lSDL2_image -lSDL2_ttf -lstdc++
+FLAGS   = -o$(TARGET) -Wall -O3 `sdl2-config --cflags --libs` -lSDL2_image -lSDL2_ttf -lstdc++
 
 $(TARGET): $(DIR) $(SRCS)
 	gcc $(SRCS) -I$(INCLUDE) $(FLAGS)
