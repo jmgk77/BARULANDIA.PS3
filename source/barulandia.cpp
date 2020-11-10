@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   }
   /*debug_font(font);*/
 
-  // mikmod init
+  // sdl sound init
   sound_init();
 
   // joystick/keyboard button state
@@ -57,6 +57,9 @@ int main(int argc, char **argv) {
 
   // init joystick
   SDL_Joystick *joystick = SDL_JoystickOpen(0);
+
+  // init mouse
+  SDL_SetRelativeMouseMode(SDL_TRUE);
 
   // init screen
   SDL_Window *window = SDL_CreateWindow(
@@ -175,6 +178,20 @@ int main(int argc, char **argv) {
       joystick_oldbuttonstate[i] = joystick_buttonstate[i];
       joystick_buttonstate[i] = false;
     }
+
+    // convert mouse state to joystick state
+    int xx, yy;
+    int bb = SDL_GetRelativeMouseState(&xx, &yy);
+    if (bb & SDL_BUTTON(SDL_BUTTON_LEFT))
+      joystick_buttonstate[SDL_CONTROLLER_BUTTON_CROSS] = true;
+    if (xx > 0)
+      joystick_buttonstate[SDL_CONTROLLER_BUTTON_RIGHT] = true;
+    if (xx < 0)
+      joystick_buttonstate[SDL_CONTROLLER_BUTTON_LEFT] = true;
+    if (yy < 0)
+      joystick_buttonstate[SDL_CONTROLLER_BUTTON_UP] = true;
+    if (yy > 0)
+      joystick_buttonstate[SDL_CONTROLLER_BUTTON_DOWN] = true;
 
     // convert keyboard state to joystick state
     const Uint8 *state = SDL_GetKeyboardState(NULL);
