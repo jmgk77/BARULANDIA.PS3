@@ -145,6 +145,13 @@ int main(int argc, char **argv) {
   bool start_gallery;
   int next_phase;
 
+  // gallery vars
+  list<SDL_Surface *> drawings;
+  list<SDL_Texture *> tdrawings;
+  std::list<SDL_Surface *>::iterator drawing_ptr;
+  std::list<SDL_Texture *>::iterator tdrawing_ptr;
+  SDL_Surface *draw_continue;
+
   // main vars
   SDL_Rect cursor;
   SDL_Texture *tcursor, *aux;
@@ -395,18 +402,109 @@ int main(int argc, char **argv) {
 /////////////////////////////////////////////////////////////////////////////
 #ifndef SKIP_GALLERY
     case GALLERY_INIT: {
-      dbglogger_printf("GALLERY_INIT\n");
+      char buf[MAX_STRING];
+      struct dirent *en;
+
+      // load resources
+      fundo = load_texture(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
+
+      // create surfaces and textures
+      if (DIR *dr = opendir(DATA_PATH "SAVEDATA/")) {
+        while ((en = readdir(dr)) != NULL) {
+          // our files have exatly 28 chars (DRAW_YYYY_MM_DD_HH_MM_SS.PNG)
+          if (strlen(en->d_name) == 28) {
+            snprintf(buf, MAX_STRING, "%sSAVEDATA/%s", DATA_PATH, en->d_name);
+            drawings.push_back(load_surface(buf));
+            tdrawings.push_back(load_texture(renderer, buf));
+          }
+        }
+        closedir(dr);
+      }
+
+      // pointers to first drawing retrieved
+      drawing_ptr = drawings.begin();
+      tdrawing_ptr = tdrawings.begin();
+
       PHASE = GALLERY_MAIN;
     } break;
 
     case GALLERY_MAIN: {
-      dbglogger_printf("GALLERY_MAIN\n");
-      PHASE = GALLERY_END;
+
+      /*      for (std::list<SDL_Surface *>::iterator i = drawings.begin();
+                 i != drawings.end(); ++i) {
+              dbglogger_printf("%08x\t", i);
+              if (drawing_ptr == i) {
+                dbglogger_printf("<---");
+              }
+              dbglogger_printf("\n");
+            }*/
+
+      // move drawings
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_LEFT) {
+        if (drawing_ptr != drawings.begin()) {
+          drawing_ptr--;
+          tdrawing_ptr--;
+        }
+      }
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_RIGHT) {
+        if ((drawing_ptr != drawings.end()) &&
+            (drawing_ptr != --drawings.end())) {
+          drawing_ptr++;
+          tdrawing_ptr++;
+        }
+      }
+
+      // exit to game
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) {
+        draw_continue = *drawing_ptr;
+        PHASE = GALLERY_END;
+      }
+      // exit to menu
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CIRCLE) {
+        draw_continue = NULL;
+        PHASE = GALLERY_END;
+      }
+
+      // position of main draw
+      SDL_Rect dstrect;
+      dstrect.w = (*drawing_ptr)->w / 1.5;
+      dstrect.h = (*drawing_ptr)->h / 1.5;
+      dstrect.x = (WIDTH - dstrect.w) / 2;
+      dstrect.y = (HEIGHT - dstrect.h) / 2;
+
+      SDL_RenderClear(renderer);
+      SDL_RenderCopy(renderer, fundo, NULL, NULL);
+      SDL_RenderCopy(renderer, *tdrawing_ptr, NULL, &dstrect);
+      //***
+      SDL_RenderPresent(renderer);
+
     } break;
 
     case GALLERY_END: {
-      dbglogger_printf("GALLERY_END\n");
-      PHASE = START_INIT;
+      // free surfaces
+      while (!drawings.empty()) {
+        // dont free it if we'll continue drawing
+        if (draw_continue != drawings.front()) {
+          SDL_FreeSurface(drawings.front());
+        }
+        drawings.pop_front();
+      }
+      // destroy textures
+      while (!tdrawings.empty()) {
+        SDL_DestroyTexture(tdrawings.front());
+        tdrawings.pop_front();
+      }
+      SDL_DestroyTexture(fundo);
+
+      if (draw_continue) {
+        // exit to game
+
+        PHASE = MAIN_INIT;
+      } else {
+        // exit to menu
+
+        PHASE = START_INIT;
+      }
     } break;
 #endif
 /////////////////////////////////////////////////////////////////////////////
@@ -575,14 +673,21 @@ int main(int argc, char **argv) {
         // free old
         SDL_FreeSurface(draw);
 
-        // load new
-        char buf[128];
-        snprintf(buf, 128, "%sDRAW%d%s", DATA_PATH, draw_current + 1,
-                 GRAPH_EXT);
-        draw = load_surface(buf);
+        // continue old?
+        if (draw_continue) {
+          draw = draw_continue;
+          draw_continue = NULL;
+          effect_play(SOUND_MAGIC);
+        } else {
+          // load new
+          char buf[MAX_STRING];
+          snprintf(buf, MAX_STRING, "%sDRAW%d%s", DATA_PATH, draw_current + 1,
+                   GRAPH_EXT);
+          draw = load_surface(buf);
 
-        // play sound effect
-        effect_play(draw_current + 1);
+          // play sound effect
+          effect_play(draw_current + 1);
+        }
 
         // set position
         SDL_Rect d_pos;

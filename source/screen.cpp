@@ -258,6 +258,8 @@ SDL_Surface *create_credit_screen(TTF_Font *font) {
 
   SDL_Rect dstrect;
   SDL_Rect srcrect;
+  srcrect.w = BUTTONS_XY;
+  srcrect.h = BUTTONS_XY;
 
   // title
   dstrect.x = (credit_screen->w - t9->w - BUTTONS_XY) / 2;

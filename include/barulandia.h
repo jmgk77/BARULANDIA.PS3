@@ -7,6 +7,8 @@
 //#define SKIP_GALLERY
 //#define SKIP_MAIN
 
+#define MAX_STRING 2048
+
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 #if defined SKIP_INTRO || defined SKIP_STARTSCREEN || defined SKIP_MAIN
@@ -52,7 +54,9 @@
 #include "video.h"
 
 #include <queue>
+#include <list>
 #include <time.h>
+#include <dirent.h>
 
 using namespace std;
 
@@ -68,5 +72,5 @@ using namespace std;
 #define MAIN_INIT 10
 #define MAIN_MAIN 11
 #define MAIN_END 12
-#define FINISHED 10
+#define FINISHED 13
 

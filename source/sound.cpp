@@ -3,8 +3,8 @@
 SDL_AudioDeviceID deviceId;
 
 void effect_play(int index) {
-  char buf[128];
-  snprintf(buf, 128, "%sSOUND%d.WAV", DATA_PATH, index);
+  char buf[MAX_STRING];
+  snprintf(buf, MAX_STRING, "%sSOUND%d.WAV", DATA_PATH, index);
   dbglogger_printf("PLAYING: %s\n", buf);
 
   // load wav
