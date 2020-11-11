@@ -10,3 +10,4 @@ build/
 .vs/*
 x64/*
 release/USRDIR/SAVEDATA/*
+!release/USRDIR/SAVEDATA/.gitkeep

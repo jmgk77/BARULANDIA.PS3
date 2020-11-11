@@ -14,7 +14,7 @@ void effect_play(int index) {
 
   SDL_AudioSpec *t = SDL_LoadWAV(buf, &wave, &wavBuffer, &wavLength);
   // check wave.format becoz PS3 SDL dont report error
-  if ((t == NULL) /*||(!wave.format)*/) {
+  if ((t == NULL) || (!wave.format)) {
     fprintf(stderr, "Could not open %s: %s\n", buf, SDL_GetError());
     return;
   }

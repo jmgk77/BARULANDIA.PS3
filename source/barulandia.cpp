@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
   list<SDL_Texture *> tdrawings;
   std::list<SDL_Surface *>::iterator drawing_ptr;
   std::list<SDL_Texture *>::iterator tdrawing_ptr;
-  SDL_Surface *draw_continue;
+  SDL_Surface *draw_continue = NULL;
 
   // main vars
   SDL_Rect cursor;
