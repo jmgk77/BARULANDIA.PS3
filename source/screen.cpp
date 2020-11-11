@@ -224,6 +224,7 @@ SDL_Surface *create_help_screen(TTF_Font *font) {
   // free
   SDL_FreeSurface(t9);
   SDL_FreeSurface(t7);
+  SDL_FreeSurface(t6);
   SDL_FreeSurface(t5);
   SDL_FreeSurface(t4);
   SDL_FreeSurface(t3);
@@ -286,6 +287,15 @@ SDL_Surface *create_credit_screen(TTF_Font *font) {
   dstrect.x = (credit_screen->w - t5->w) / 2;
   dstrect.y += MARGIN_Y / 2;
   SDL_BlitSurface(t5, NULL, credit_screen, &dstrect);
+
+  // free
+  SDL_FreeSurface(t9);
+  SDL_FreeSurface(t5);
+  SDL_FreeSurface(t4);
+  SDL_FreeSurface(t3);
+  SDL_FreeSurface(t2);
+  SDL_FreeSurface(t1);
+  SDL_FreeSurface(buttons);
 
   return credit_screen;
 }
