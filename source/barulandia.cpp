@@ -433,13 +433,16 @@ int main(int argc, char **argv) {
           }
         }
         closedir(dr);
-      } else {
-        // if not files found, push empty values
+      }
+
+      // if not files found, push empty values
+      if (drawings.empty()) {
         i.name = NULL;
         i.surface = NULL;
         i.texture = load_texture(renderer, DATA_PATH "NOTFOUND" GRAPH_EXT);
         drawings.push_back(i);
       }
+
       // pointers to first drawing retrieved
       drawing_ptr = drawings.begin();
 
@@ -477,17 +480,30 @@ int main(int argc, char **argv) {
 
       // delete drawing
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_TRIANGLE) {
-        remove(drawing_ptr->name);
-        // free
-        SDL_FreeSurface(drawing_ptr->surface);
-        SDL_DestroyTexture(drawing_ptr->texture);
-        delete[] drawing_ptr->name;
-        // remove from list
-        drawing_ptr = drawings.erase(drawing_ptr);
+        if (drawing_ptr->name) {
+          remove(drawing_ptr->name);
+          // free
+          SDL_FreeSurface(drawing_ptr->surface);
+          SDL_DestroyTexture(drawing_ptr->texture);
+          delete[] drawing_ptr->name;
+          // remove from list
+          drawing_ptr = drawings.erase(drawing_ptr);
 
-        // if the removal left us after the last, rewind
-        if (drawing_ptr == drawings.end()) {
-          drawing_ptr--;
+          // if all deleted, push empty values
+          if (drawings.empty()) {
+            draws i;
+            i.name = NULL;
+            i.surface = NULL;
+            i.texture = load_texture(renderer, DATA_PATH "NOTFOUND" GRAPH_EXT);
+            drawings.push_back(i);
+          }
+
+          // if the removal left us after the last, rewind
+          if (drawing_ptr == drawings.end()) {
+            drawing_ptr--;
+          }
+        } else {
+          effect_play(SOUND_ERROR);
         }
       }
 
@@ -505,8 +521,8 @@ int main(int argc, char **argv) {
           ptr = drawing_ptr;
           ptr--;
           ptr--;
-          dstrect.w = ptr->surface->w / 2.5;
-          dstrect.h = ptr->surface->h / 2.5;
+          dstrect.w = DRAW_W / 2.5;
+          dstrect.h = DRAW_H / 2.5;
           dstrect.x = (WIDTH - dstrect.w) / 8;
           dstrect.y = (HEIGHT - dstrect.h) / 2;
           SDL_RenderCopy(renderer, ptr->texture, NULL, &dstrect);
@@ -514,8 +530,8 @@ int main(int argc, char **argv) {
         // n-1 exists
         ptr = drawing_ptr;
         ptr--;
-        dstrect.w = ptr->surface->w / 2;
-        dstrect.h = ptr->surface->h / 2;
+        dstrect.w = DRAW_W / 2;
+        dstrect.h = DRAW_H / 2;
         dstrect.x = (WIDTH - dstrect.w) / 4;
         dstrect.y = (HEIGHT - dstrect.h) / 2;
         SDL_RenderCopy(renderer, ptr->texture, NULL, &dstrect);
@@ -528,8 +544,8 @@ int main(int argc, char **argv) {
           ptr = drawing_ptr;
           ptr++;
           ptr++;
-          dstrect.w = ptr->surface->w / 2.5;
-          dstrect.h = ptr->surface->h / 2.5;
+          dstrect.w = DRAW_W / 2.5;
+          dstrect.h = DRAW_H / 2.5;
           dstrect.x = ((WIDTH - dstrect.w) / 8) * 7;
           dstrect.y = (HEIGHT - dstrect.h) / 2;
           SDL_RenderCopy(renderer, ptr->texture, NULL, &dstrect);
@@ -537,16 +553,16 @@ int main(int argc, char **argv) {
         // n+1 exists
         ptr = drawing_ptr;
         ptr++;
-        dstrect.w = ptr->surface->w / 2;
-        dstrect.h = ptr->surface->h / 2;
+        dstrect.w = DRAW_W / 2;
+        dstrect.h = DRAW_H / 2;
         dstrect.x = ((WIDTH - dstrect.w) / 4) * 3;
         dstrect.y = (HEIGHT - dstrect.h) / 2;
         SDL_RenderCopy(renderer, ptr->texture, NULL, &dstrect);
       }
 
       // position of main draw
-      dstrect.w = drawing_ptr->surface->w / 1.5;
-      dstrect.h = drawing_ptr->surface->h / 1.5;
+      dstrect.w = DRAW_W / 1.5;
+      dstrect.h = DRAW_H / 1.5;
       dstrect.x = (WIDTH - dstrect.w) / 2;
       dstrect.y = (HEIGHT - dstrect.h) / 2;
       SDL_RenderCopy(renderer, drawing_ptr->texture, NULL, &dstrect);
@@ -574,17 +590,18 @@ int main(int argc, char **argv) {
         drawings.pop_front();
       }
 
-      SDL_DestroyTexture(fundo);
-
       if (draw_continue) {
         // exit to game
-
+        effect_play(SOUND_MAGIC);
         PHASE = MAIN_INIT;
       } else {
         // exit to menu
-
         PHASE = START_INIT;
       }
+
+      set_alpha_rate(30);
+      fade_in_out(renderer, fundo, false, false);
+      SDL_DestroyTexture(fundo);
     } break;
 #endif
 /////////////////////////////////////////////////////////////////////////////
@@ -757,7 +774,6 @@ int main(int argc, char **argv) {
         if (draw_continue) {
           draw = draw_continue;
           draw_continue = NULL;
-          effect_play(SOUND_MAGIC);
         } else {
           // load new
           char buf[MAX_STRING];
@@ -771,10 +787,10 @@ int main(int argc, char **argv) {
 
         // set position
         SDL_Rect d_pos;
-        d_pos.x = (WIDTH - draw->w) / 2;
+        d_pos.x = (WIDTH - DRAW_W) / 2;
         d_pos.y = 0;
-        d_pos.w = draw->w;
-        d_pos.h = draw->h;
+        d_pos.w = DRAW_W;
+        d_pos.h = DRAW_H;
 
         // paste draw into field
         SDL_BlitSurface(draw, NULL, field, &d_pos);

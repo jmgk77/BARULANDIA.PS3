@@ -9,6 +9,9 @@
 
 #define MAX_STRING 2048
 
+#define DRAW_W 576
+#define DRAW_H 720
+
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 #if defined SKIP_INTRO || defined SKIP_STARTSCREEN || defined SKIP_MAIN
