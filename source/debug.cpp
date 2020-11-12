@@ -573,15 +573,18 @@ void debug_audio_spec(SDL_AudioSpec *a) {
   case AUDIO_F32MSB:
     s = "AUDIO_F32MSB";
     break;
-    /*  case AUDIO_F32SYS:
-        s = "AUDIO_F32SYS";
-        break;
-      case AUDIO_F32:
-        s = "AUDIO_F32";
-        break;
-      case AUDIO_F32LSB:
-        s = "AUDIO_F32LSB";
-        break;*/
+  /*  case AUDIO_F32SYS:
+      s = "AUDIO_F32SYS";
+      break;
+    case AUDIO_F32:
+      s = "AUDIO_F32";
+      break;
+    case AUDIO_F32LSB:
+      s = "AUDIO_F32LSB";
+      break;*/
+  default:
+    s = "???";
+    break;
   }
   dbglogger_printf("format %s\n", s);
   dbglogger_printf("channels %d\n", a->channels);

@@ -53,10 +53,10 @@
 #include "sound.h"
 #include "video.h"
 
-#include <queue>
-#include <list>
-#include <time.h>
 #include <dirent.h>
+#include <list>
+#include <queue>
+#include <time.h>
 
 using namespace std;
 
@@ -73,4 +73,3 @@ using namespace std;
 #define MAIN_MAIN 11
 #define MAIN_END 12
 #define FINISHED 13
-

@@ -613,7 +613,7 @@ int main(int argc, char **argv) {
       draw_refresh = redraw = true;
 
       // cursor movement
-      dx = dy = accell = 0;
+      accell = 0;
 
       // load resources
       field = load_surface(DATA_PATH "FIELD" GRAPH_EXT);
