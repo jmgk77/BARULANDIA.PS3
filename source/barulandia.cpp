@@ -148,8 +148,10 @@ int main(int argc, char **argv) {
   // gallery vars
   list<SDL_Surface *> drawings;
   list<SDL_Texture *> tdrawings;
+  list<char *> ndrawings;
   std::list<SDL_Surface *>::iterator drawing_ptr;
   std::list<SDL_Texture *>::iterator tdrawing_ptr;
+  std::list<char *>::iterator ndrawing_ptr;
   SDL_Surface *draw_continue = NULL;
 
   // main vars
@@ -384,6 +386,13 @@ int main(int argc, char **argv) {
         PHASE = START_END;
       }
 
+#ifdef DEBUG
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_TRIANGLE) {
+        next_phase = FINISHED;
+        PHASE = START_END;
+      }
+#endif
+
     } break;
 
     case START_END: {
@@ -402,7 +411,6 @@ int main(int argc, char **argv) {
 /////////////////////////////////////////////////////////////////////////////
 #ifndef SKIP_GALLERY
     case GALLERY_INIT: {
-      char buf[MAX_STRING];
       struct dirent *en;
 
       // load resources
@@ -413,45 +421,45 @@ int main(int argc, char **argv) {
         while ((en = readdir(dr)) != NULL) {
           // our files have exatly 28 chars (DRAW_YYYY_MM_DD_HH_MM_SS.PNG)
           if (strlen(en->d_name) == 28) {
+            char *buf = new char[MAX_STRING];
             snprintf(buf, MAX_STRING, "%sSAVEDATA/%s", DATA_PATH, en->d_name);
             drawings.push_back(load_surface(buf));
             tdrawings.push_back(load_texture(renderer, buf));
+            ndrawings.push_back(buf);
           }
         }
         closedir(dr);
+      } else {
+        // if not files found, push empty values
+        drawings.push_back(NULL);
+        tdrawings.push_back(
+            load_texture(renderer, DATA_PATH "NOTFOUND" GRAPH_EXT));
+        ndrawings.push_back(NULL);
       }
-
       // pointers to first drawing retrieved
       drawing_ptr = drawings.begin();
       tdrawing_ptr = tdrawings.begin();
+      ndrawing_ptr = ndrawings.begin();
 
       PHASE = GALLERY_MAIN;
     } break;
 
     case GALLERY_MAIN: {
 
-      /*      for (std::list<SDL_Surface *>::iterator i = drawings.begin();
-                 i != drawings.end(); ++i) {
-              dbglogger_printf("%08x\t", i);
-              if (drawing_ptr == i) {
-                dbglogger_printf("<---");
-              }
-              dbglogger_printf("\n");
-            }*/
-
       // move drawings
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_LEFT) {
         if (drawing_ptr != drawings.begin()) {
           drawing_ptr--;
           tdrawing_ptr--;
-        }
+          ndrawing_ptr--;
+        } //***else playsound(error)
       }
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_RIGHT) {
-        if ((drawing_ptr != drawings.end()) &&
-            (drawing_ptr != --drawings.end())) {
+        if (drawing_ptr != --drawings.end()) {
           drawing_ptr++;
           tdrawing_ptr++;
-        }
+          ndrawing_ptr++;
+        } //***else playsound(error)
       }
 
       // exit to game
@@ -465,17 +473,87 @@ int main(int argc, char **argv) {
         PHASE = GALLERY_END;
       }
 
-      // position of main draw
+      // delete drawing
+      BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_TRIANGLE) {
+        remove(*ndrawing_ptr);
+        // free
+        SDL_FreeSurface(*drawing_ptr);
+        SDL_DestroyTexture(*tdrawing_ptr);
+        delete[] * ndrawing_ptr;
+        // remove from list
+        drawing_ptr = drawings.erase(drawing_ptr);
+        tdrawing_ptr = tdrawings.erase(tdrawing_ptr);
+        ndrawing_ptr = ndrawings.erase(ndrawing_ptr);
+
+        // if the removal left us after the last, rewind
+        if (drawing_ptr == drawings.end()) {
+          drawing_ptr--;
+          tdrawing_ptr--;
+          ndrawing_ptr--;
+        }
+      }
+
+      // render fundo
       SDL_Rect dstrect;
+      std::list<SDL_Texture *>::iterator ptr;
+      SDL_RenderClear(renderer);
+      SDL_RenderCopy(renderer, fundo, NULL, NULL);
+      //***draw buttons
+
+      // previous
+      if (tdrawing_ptr != tdrawings.begin()) {
+        if (std::prev(tdrawing_ptr) != tdrawings.begin()) {
+          // n-2 exists
+          ptr = tdrawing_ptr;
+          ptr--;
+          ptr--;
+          dstrect.w = (*drawing_ptr)->w / 2.5;
+          dstrect.h = (*drawing_ptr)->h / 2.5;
+          dstrect.x = (WIDTH - dstrect.w) / 8;
+          dstrect.y = (HEIGHT - dstrect.h) / 2;
+          SDL_RenderCopy(renderer, *ptr, NULL, &dstrect);
+        }
+        // n-1 exists
+        ptr = tdrawing_ptr;
+        ptr--;
+        dstrect.w = (*drawing_ptr)->w / 2;
+        dstrect.h = (*drawing_ptr)->h / 2;
+        dstrect.x = (WIDTH - dstrect.w) / 4;
+        dstrect.y = (HEIGHT - dstrect.h) / 2;
+        SDL_RenderCopy(renderer, *ptr, NULL, &dstrect);
+      }
+
+      // next
+      if (drawing_ptr != --drawings.end()) {
+        if (std::next(tdrawing_ptr) != --tdrawings.end()) {
+          // n+2 exists
+          ptr = tdrawing_ptr;
+          ptr++;
+          ptr++;
+          dstrect.w = (*drawing_ptr)->w / 2.5;
+          dstrect.h = (*drawing_ptr)->h / 2.5;
+          dstrect.x = ((WIDTH - dstrect.w) / 8) * 7;
+          dstrect.y = (HEIGHT - dstrect.h) / 2;
+          SDL_RenderCopy(renderer, *ptr, NULL, &dstrect);
+        }
+        // n+1 exists
+        ptr = tdrawing_ptr;
+        ptr++;
+        dstrect.w = (*drawing_ptr)->w / 2;
+        dstrect.h = (*drawing_ptr)->h / 2;
+        dstrect.x = ((WIDTH - dstrect.w) / 4) * 3;
+        dstrect.y = (HEIGHT - dstrect.h) / 2;
+        SDL_RenderCopy(renderer, *ptr, NULL, &dstrect);
+      }
+
+      // position of main draw
       dstrect.w = (*drawing_ptr)->w / 1.5;
       dstrect.h = (*drawing_ptr)->h / 1.5;
       dstrect.x = (WIDTH - dstrect.w) / 2;
       dstrect.y = (HEIGHT - dstrect.h) / 2;
-
-      SDL_RenderClear(renderer);
-      SDL_RenderCopy(renderer, fundo, NULL, NULL);
       SDL_RenderCopy(renderer, *tdrawing_ptr, NULL, &dstrect);
-      //***
+
+      // show
       SDL_RenderPresent(renderer);
 
     } break;
@@ -493,6 +571,11 @@ int main(int argc, char **argv) {
       while (!tdrawings.empty()) {
         SDL_DestroyTexture(tdrawings.front());
         tdrawings.pop_front();
+      }
+      // free names
+      while (!ndrawings.empty()) {
+        delete[] ndrawings.front();
+        ndrawings.pop_front();
       }
       SDL_DestroyTexture(fundo);
 
