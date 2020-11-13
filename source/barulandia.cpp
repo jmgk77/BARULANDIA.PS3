@@ -1,12 +1,38 @@
 #include "barulandia.h"
 
+// globals
+SDL_Renderer *renderer = NULL;
+SDL_Window *window = NULL;
+SDL_Joystick *joystick = NULL;
+TTF_Font *font = NULL;
+
+// cleanup
+void cleanup() {
+  if (renderer)
+    SDL_DestroyRenderer(renderer);
+  if (window)
+    SDL_DestroyWindow(window);
+  sound_end();
+  if (joystick)
+    SDL_JoystickClose(joystick);
+  if (font)
+    TTF_CloseFont(font);
+  TTF_Quit();
+  IMG_Quit();
+  SDL_Quit();
+  dbglogger_stop();
+  return;
+}
+
+// main
 int main(int argc, char **argv) {
   dbglogger_init_str("tcp:" DBG_IP ":" DBG_PORT);
-  dbglogger_printf("BARULANDIA for ps3 (c) jmgk 2020");
+  dbglogger_printf("BARULANDIA for ps3 (c) jmgk 2020\n");
 
 #ifdef DEBUG
   atexit(ret2psload);
 #endif
+  atexit(cleanup);
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -38,7 +64,7 @@ int main(int argc, char **argv) {
     return -1;
   }
   // Brady Bunch Remastered
-  TTF_Font *font = TTF_OpenFont(DATA_PATH "BRADBUNR.TTF", 48);
+  font = TTF_OpenFont(DATA_PATH "BRADBUNR.TTF", 48);
   if (!font) {
     dbglogger_printf("TTF_OpenFont: %s\n", TTF_GetError());
     return -1;
@@ -56,22 +82,21 @@ int main(int argc, char **argv) {
   }
 
   // init joystick
-  SDL_Joystick *joystick = SDL_JoystickOpen(0);
+  joystick = SDL_JoystickOpen(0);
 
   // init mouse
   SDL_SetRelativeMouseMode(SDL_TRUE);
 
   // init screen
-  SDL_Window *window = SDL_CreateWindow(
-      "BARULANDIA.PS3", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH,
-      HEIGHT, SDL_WINDOW_FULLSCREEN);
+  window = SDL_CreateWindow("BARULANDIA.PS3", SDL_WINDOWPOS_UNDEFINED,
+                            SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT,
+                            SDL_WINDOW_FULLSCREEN);
   if (window == NULL) {
     dbglogger_printf("SDL_CreateWindow: %s\n", SDL_GetError());
     return -1;
   }
 
-  SDL_Renderer *renderer =
-      SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
   if (renderer == NULL) {
     dbglogger_printf("SDL_CreateRenderer: %s", SDL_GetError());
     return -1;
@@ -236,6 +261,12 @@ int main(int argc, char **argv) {
         joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
       }
     }
+
+#ifdef DEBUG
+    BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_R3) {
+      dbglogger_screenshot_tmp(SDL_ALPHA_OPAQUE);
+    }
+#endif
 
     switch (PHASE) {
 /////////////////////////////////////////////////////////////////////////////
@@ -847,29 +878,10 @@ int main(int argc, char **argv) {
     } break;
     }
   }
-
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
-  // cleanup
+  // cleanup (atexit)
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
-  SDL_DestroyRenderer(renderer);
-
-  SDL_DestroyWindow(window);
-
-  sound_end();
-
-  if (joystick) {
-    SDL_JoystickClose(joystick);
-  }
-
-  TTF_CloseFont(font);
-  TTF_Quit();
-
-  IMG_Quit();
-
-  SDL_Quit();
-  dbglogger_stop();
-
   return 0;
 }
