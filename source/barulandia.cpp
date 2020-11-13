@@ -178,7 +178,8 @@ int main(int argc, char **argv) {
   };
   list<draws> drawings;
   list<draws>::iterator drawing_ptr;
-
+  SDL_Texture *tfundo;
+  SDL_Surface *buttons, *t_move, *t_continue, *t_delete, *t_cancel, *sfundo;
   SDL_Surface *draw_continue = NULL;
 
   // main vars
@@ -449,6 +450,7 @@ int main(int argc, char **argv) {
 
       // load resources
       fundo = load_texture(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
+      sfundo = load_surface(DATA_PATH "FUNDO" GRAPH_EXT);
 
       // create surfaces and textures
       if (DIR *dr = opendir(DATA_PATH "SAVEDATA/")) {
@@ -473,6 +475,70 @@ int main(int argc, char **argv) {
         i.texture = load_texture(renderer, DATA_PATH "NOTFOUND" GRAPH_EXT);
         drawings.push_back(i);
       }
+
+      // create texts
+      SDL_Color fg = {255, 0, 0, SDL_ALPHA_OPAQUE};
+      buttons = load_surface(DATA_PATH "BUTTONS" GRAPH_EXT);
+      t_move = TTF_RenderUTF8_Blended(font, "ESCOLHER", fg);
+      t_continue = TTF_RenderUTF8_Blended(font, "CONTINUAR", fg);
+      t_delete = TTF_RenderUTF8_Blended(font, "APAGAR", fg);
+      t_cancel = TTF_RenderUTF8_Blended(font, "VOLTAR", fg);
+
+      // draw buttons
+      SDL_Rect dstrect;
+      SDL_Rect srcrect;
+      srcrect.w = BUTTONS_XY;
+      srcrect.h = BUTTONS_XY;
+
+      dstrect.x = (((WIDTH / 4) - ((BUTTONS_XY * 2) + t_move->w)) / 2);
+      dstrect.y = HEIGHT - BUTTONS_XY;
+      srcrect.x = DPAD_X * BUTTONS_XY;
+      srcrect.y = DPAD_Y * BUTTONS_XY;
+      SDL_BlitSurface(buttons, &srcrect, sfundo, &dstrect);
+      dstrect.x += BUTTONS_XY;
+      srcrect.x = L_X * BUTTONS_XY;
+      srcrect.y = L_Y * BUTTONS_XY;
+      SDL_BlitSurface(buttons, &srcrect, sfundo, &dstrect);
+      dstrect.x += BUTTONS_XY;
+      SDL_BlitSurface(t_move, NULL, sfundo, &dstrect);
+      dstrect.x += t_move->w;
+
+      dstrect.x =
+          (WIDTH / 4) + (((WIDTH / 4) - ((BUTTONS_XY) + t_continue->w)) / 2);
+      srcrect.x = CROSS_X * BUTTONS_XY;
+      srcrect.y = CROSS_Y * BUTTONS_XY;
+      SDL_BlitSurface(buttons, &srcrect, sfundo, &dstrect);
+      dstrect.x += BUTTONS_XY;
+      SDL_BlitSurface(t_continue, NULL, sfundo, &dstrect);
+      dstrect.x += t_continue->w;
+
+      dstrect.x = ((WIDTH / 4) * 2) +
+                  (((WIDTH / 4) - ((BUTTONS_XY) + t_delete->w)) / 2);
+      srcrect.x = TRIANGLE_X * BUTTONS_XY;
+      srcrect.y = TRIANGLE_Y * BUTTONS_XY;
+      SDL_BlitSurface(buttons, &srcrect, sfundo, &dstrect);
+      dstrect.x += BUTTONS_XY;
+      SDL_BlitSurface(t_delete, NULL, sfundo, &dstrect);
+      dstrect.x += t_delete->w;
+
+      dstrect.x = ((WIDTH / 4) * 3) +
+                  (((WIDTH / 4) - ((BUTTONS_XY) + t_cancel->w)) / 2);
+      srcrect.x = CIRCLE_X * BUTTONS_XY;
+      srcrect.y = CIRCLE_Y * BUTTONS_XY;
+      SDL_BlitSurface(buttons, &srcrect, sfundo, &dstrect);
+      dstrect.x += BUTTONS_XY;
+      SDL_BlitSurface(t_cancel, NULL, sfundo, &dstrect);
+      /*dstrect.x += t_cancel->w;*/
+
+      tfundo = SDL_CreateTextureFromSurface(renderer, sfundo);
+      SDL_FreeSurface(sfundo);
+
+      // free text surfaces
+      SDL_FreeSurface(t_move);
+      SDL_FreeSurface(t_continue);
+      SDL_FreeSurface(t_delete);
+      SDL_FreeSurface(t_cancel);
+      SDL_FreeSurface(buttons);
 
       // pointers to first drawing retrieved
       drawing_ptr = drawings.begin();
@@ -542,8 +608,7 @@ int main(int argc, char **argv) {
       SDL_Rect dstrect;
       list<draws>::iterator ptr;
       SDL_RenderClear(renderer);
-      SDL_RenderCopy(renderer, fundo, NULL, NULL);
-      //***draw buttons
+      SDL_RenderCopy(renderer, tfundo, NULL, NULL);
 
       // previous
       if (drawing_ptr != drawings.begin()) {
@@ -620,6 +685,8 @@ int main(int argc, char **argv) {
           delete[] i.name;
         drawings.pop_front();
       }
+
+      SDL_DestroyTexture(tfundo);
 
       if (draw_continue) {
         // exit to game
