@@ -593,3 +593,27 @@ void debug_audio_spec(SDL_AudioSpec *a) {
   dbglogger_printf("size %d\n", a->size);
 #endif
 }
+
+#ifdef DEBUG
+#ifndef PS3
+
+extern SDL_Renderer *renderer;
+
+void debug_screenshot() {
+  char buf[MAX_STRING];
+  time_t rawtime;
+  struct tm *t;
+  time(&rawtime);
+  t = gmtime(&rawtime);
+  snprintf(buf, MAX_STRING, "SCREENSHOT_%d_%02d_%02d_%02d_%02d_%02d%s",
+           t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min,
+           t->tm_sec, GRAPH_EXT);
+  SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(
+      0, WIDTH, HEIGHT, 32, SDL_PIXELFORMAT_ARGB8888);
+  SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888,
+                       surface->pixels, surface->pitch);
+  IMG_SavePNG(surface, buf);
+  SDL_FreeSurface(surface);
+}
+#endif
+#endif

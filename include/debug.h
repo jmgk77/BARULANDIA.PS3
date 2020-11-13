@@ -11,7 +11,7 @@
 #define dbglogger_stop(x)
 #define dbglogger_printf printf
 #define dbglogger_printf printf
-#define dbglogger_screenshot_tmp(x)
+#define dbglogger_screenshot_tmp(x) debug_screenshot()
 #endif
 #else
 #define dbglogger_init_str(x)
@@ -31,3 +31,4 @@ void debug_window(SDL_Window *window);
 void debug_renderer(SDL_Renderer *renderer);
 void debug_audio();
 void debug_audio_spec(SDL_AudioSpec *a);
+void debug_screenshot();
