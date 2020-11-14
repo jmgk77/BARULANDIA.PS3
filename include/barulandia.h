@@ -1,6 +1,6 @@
 #pragma once
 
-#define DEBUG 1
+//#define DEBUG 1
 
 //#define SKIP_INTRO
 //#define SKIP_STARTSCREEN

@@ -8,15 +8,23 @@ TTF_Font *font = NULL;
 
 // cleanup
 void cleanup() {
-  if (renderer)
+  if (renderer) {
     SDL_DestroyRenderer(renderer);
-  if (window)
+    renderer = NULL;
+  }
+  if (window) {
     SDL_DestroyWindow(window);
+    window = NULL;
+  }
   sound_end();
-  if (joystick)
+  if (joystick) {
     SDL_JoystickClose(joystick);
-  if (font)
+    joystick = NULL;
+  }
+  if (font) {
     TTF_CloseFont(font);
+    font = NULL;
+  }
   TTF_Quit();
   IMG_Quit();
   SDL_Quit();
@@ -33,6 +41,19 @@ int main(int argc, char **argv) {
   atexit(ret2psload);
 #endif
   atexit(cleanup);
+
+#ifdef PS3
+  // XMB exit
+  sysUtilRegisterCallback(
+      SYSUTIL_EVENT_SLOT0,
+      [](uint64_t status, uint64_t param, void *userdata) {
+        if (status == SYSUTIL_EXIT_GAME) {
+          cleanup();
+          sysProcessExit(1);
+        }
+      },
+      NULL);
+#endif
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -599,6 +620,8 @@ int main(int argc, char **argv) {
           if (drawing_ptr == drawings.end()) {
             drawing_ptr--;
           }
+
+          effect_play(SOUND_TRASH);
         } else {
           effect_play(SOUND_ERROR);
         }
