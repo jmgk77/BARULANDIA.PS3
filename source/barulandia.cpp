@@ -511,14 +511,10 @@ int main(int argc, char **argv) {
       srcrect.w = BUTTONS_XY;
       srcrect.h = BUTTONS_XY;
 
-      dstrect.x = (((WIDTH / 4) - ((BUTTONS_XY * 2) + t_move->w)) / 2);
+      dstrect.x = (((WIDTH / 4) - ((BUTTONS_XY) + t_move->w)) / 2);
       dstrect.y = HEIGHT - BUTTONS_XY;
       srcrect.x = DPAD_X * BUTTONS_XY;
       srcrect.y = DPAD_Y * BUTTONS_XY;
-      SDL_BlitSurface(buttons, &srcrect, sfundo, &dstrect);
-      dstrect.x += BUTTONS_XY;
-      srcrect.x = L_X * BUTTONS_XY;
-      srcrect.y = L_Y * BUTTONS_XY;
       SDL_BlitSurface(buttons, &srcrect, sfundo, &dstrect);
       dstrect.x += BUTTONS_XY;
       SDL_BlitSurface(t_move, NULL, sfundo, &dstrect);
