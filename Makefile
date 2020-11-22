@@ -26,7 +26,7 @@ SFOXML		:=	$(CURDIR)/sfo.xml
 PKGFILES	:=	$(CURDIR)/release
 
 TITLE		:=	Barulandia
-APPID		:=	SDL20BARU
+APPID		:=	SDL12BARU
 CONTENTID	:=	UP0001-$(APPID)_00-0000000000000000
 
 #---------------------------------------------------------------------------------
@@ -41,9 +41,9 @@ LDFLAGS		=	$(MACHDEP) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	 -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ldbglogger \
+LIBS	:=	 -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -ldbglogger \
 			-ltiff -lpngdec -lpng -ljpeg -ljpgdec -lvorbisfile -lvorbis -logg -laudio -lm \
-			-lfreetype -lz -lpixman-1 -lSDL2main -lrsx -lgcm_sys -lio -lsysutil -lrt -llv2 -lnet \
+			-lfreetype -lz -lpixman-1 -lSDLmain -lrsx -lgcm_sys -lio -lsysutil -lrt -llv2 -lnet \
 			-lhttputil -lsysmodule
 
 #---------------------------------------------------------------------------------

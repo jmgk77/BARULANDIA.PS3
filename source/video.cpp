@@ -9,81 +9,86 @@ SDL_Surface *load_surface(const char *filename) {
     return NULL;
   }
 
-  SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_ARGB32);
-  SDL_Surface *output = SDL_ConvertSurface(tmp, format, 0);
-  SDL_FreeFormat(format);
-
-  SDL_FreeSurface(tmp);
-
-  return output;
-}
-
-SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filename) {
-  SDL_Surface *tmp = load_surface(filename);
-
-  // Convert the img to texture
-  SDL_Texture *texture;
-  if ((texture = SDL_CreateTextureFromSurface(renderer, tmp)) == NULL) {
-    dbglogger_printf("SDL_CreateTextureFromSurface Error: %s\n",
-                     SDL_GetError());
-    return NULL;
-  }
-
+  // Convert to optimal display format
+  SDL_Surface *surface = SDL_DisplayFormatAlpha(tmp);
   // Free the original bitmap
   SDL_FreeSurface(tmp);
-  //
-  SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-
-  /*debug_texture(texture);*/
-
-  return texture;
+  return surface;
 }
 
-int alpha = 3;
-
-void set_alpha_rate(int a) { alpha = a; }
-
-void fade_in_out(SDL_Renderer *renderer, SDL_Texture *image, bool center,
-                 bool in_out) {
-  int rw, rh;
-  int tw, th;
+void fade_in_out(SDL_Surface *screen, SDL_Surface *image, bool in_out) {
+  // center image in display
   SDL_Rect r;
+  r.x = (screen->w - image->w) / 2;
+  r.y = (screen->h - image->h) / 2;
+  r.w = image->w;
+  r.h = image->h;
 
-  SDL_GetRendererOutputSize(renderer, &rw, &rh);
-  SDL_QueryTexture(image, NULL, NULL, &tw, &th);
-
-  if (center) {
-
-    r.x = (rw - tw) / 2;
-    r.y = (rh - th) / 2;
-    r.w = tw;
-    r.h = th;
+  // Create a blank surface that is the same size as our screen
+  SDL_Surface *tmp = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h,
+                                          32, rmask, gmask, bmask, amask);
+  if (tmp == NULL) {
+    dbglogger_printf("SDL_CreateRGBSurface: %s", SDL_GetError());
+    return;
   }
-
-  dbglogger_printf("RENDER (%d x %d)\tTEXTURE (%d x %d)\n", rw, rh, tw, th);
+  // Convert it to the format of the screen
+  SDL_Surface *tmp_screen = SDL_DisplayFormat(tmp);
+  // Free the created surface
+  SDL_FreeSurface(tmp);
 
   int alpha_init, alpha_end, alpha_step;
-  alpha_step = (255 / alpha);
-
   if (in_out) {
     // fade in
     alpha_init = 0;
-    alpha_end = alpha_step * alpha;
+    alpha_end = 64;
+    alpha_step = 2;
   } else {
     // fade out
-    alpha_init = alpha_step * alpha;
+    alpha_init = 64;
     alpha_end = 0;
-    alpha_step = -alpha_step;
+    alpha_step = -2;
   }
 
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  Uint32 color = SDL_MapRGBA(tmp_screen->format, 255, 255, 255, 255);
   // loop
   for (int alpha = alpha_init; alpha != alpha_end; alpha += alpha_step) {
+    // Draw the bitmap to the constructed virtual screen
+    SDL_FillRect(tmp_screen, 0, color);
+    SDL_BlitSurface(image, NULL, tmp_screen, &r);
 
+#ifdef PS3
+    SDL_LockSurface(tmp_screen);
+
+    // get data
+    int bpp = tmp_screen->format->BytesPerPixel;
+    int pitch_padding = (tmp_screen->pitch - (bpp * tmp_screen->w));
+    Uint8 *pixels = (Uint8 *)tmp_screen->pixels;
+// Big Endian will have an offset of 0, otherwise it's 3 (R, G and B)
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+    pixels += 3;
+#endif
+
+    for (int row = 0; row < tmp_screen->h; ++row) {
+      for (int col = 0; col < tmp_screen->w; ++col) {
+        // apply only on non-white (check only r channel)
+        if (*(pixels + 1) != 0xff) {
+          *pixels = (Uint8)alpha * 3;
+        }
+        pixels += bpp;
+      }
+      pixels += pitch_padding;
+    }
+    SDL_UnlockSurface(tmp_screen);
+#else
+    // Set the alpha of the constructed screen
+    SDL_SetAlpha(tmp_screen, SDL_SRCALPHA, alpha * 3);
+    SDL_Delay(50);
+#endif
     // Draw the constructed surface to the primary surface now
-    SDL_RenderClear(renderer);
-    SDL_SetTextureAlphaMod(image, alpha);
-    SDL_RenderCopy(renderer, image, NULL, center ? &r : NULL);
-    SDL_RenderPresent(renderer);
+    SDL_FillRect(screen, 0, color);
+    SDL_BlitSurface(tmp_screen, NULL, screen, 0);
+
+    SDL_Flip(screen);
   }
+  SDL_FreeSurface(tmp_screen);
 }

@@ -1,21 +1,12 @@
 #include "barulandia.h"
 
 // globals
-SDL_Renderer *renderer = NULL;
-SDL_Window *window = NULL;
+SDL_Surface *screen = NULL;
 SDL_Joystick *joystick = NULL;
 TTF_Font *font = NULL;
 
 // cleanup
 void cleanup() {
-  if (renderer) {
-    SDL_DestroyRenderer(renderer);
-    renderer = NULL;
-  }
-  if (window) {
-    SDL_DestroyWindow(window);
-    window = NULL;
-  }
   sound_end();
   if (joystick) {
     SDL_JoystickClose(joystick);
@@ -44,15 +35,14 @@ int main(int argc, char **argv) {
 
 #ifdef PS3
   // XMB exit
-  sysUtilRegisterCallback(
-      SYSUTIL_EVENT_SLOT0,
-      [](uint64_t status, uint64_t param, void *userdata) {
-        if (status == SYSUTIL_EXIT_GAME) {
-          cleanup();
-          sysProcessExit(1);
-        }
-      },
-      NULL);
+  sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0,
+                          [](uint64_t status, uint64_t param, void *userdata) {
+                            if (status == SYSUTIL_EXIT_GAME) {
+                              cleanup();
+                              sysProcessExit(1);
+                            }
+                          },
+                          NULL);
 #endif
 
   /////////////////////////////////////////////////////////////////////////////
@@ -95,44 +85,38 @@ int main(int argc, char **argv) {
   // sdl sound init
   sound_init();
 
-  // joystick/keyboard button state
+  // joystick button state
   bool joystick_buttonstate[JOYBUTTONS];
   bool joystick_oldbuttonstate[JOYBUTTONS];
   for (int i = 0; i < JOYBUTTONS; ++i) {
     joystick_oldbuttonstate[i] = joystick_buttonstate[i] = false;
   }
 
+  // keyboard state
+  bool state[SDLK_LAST];
+
   // init joystick
   joystick = SDL_JoystickOpen(0);
 
   // init mouse
-  SDL_SetRelativeMouseMode(SDL_TRUE);
+  // SDL_SetRelativeMouseMode(SDL_TRUE);
 
   // init screen
-  window = SDL_CreateWindow("BARULANDIA.PS3", SDL_WINDOWPOS_UNDEFINED,
-                            SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT,
-                            SDL_WINDOW_FULLSCREEN);
-  if (window == NULL) {
-    dbglogger_printf("SDL_CreateWindow: %s\n", SDL_GetError());
-    return -1;
-  }
-
-  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
-  if (renderer == NULL) {
-    dbglogger_printf("SDL_CreateRenderer: %s", SDL_GetError());
+  screen = SDL_SetVideoMode(WIDTH, HEIGHT, 0,
+                            SDL_SWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
+  if (screen == NULL) {
+    dbglogger_printf("SDL_SetVideoMode: %s", SDL_GetError());
     return -1;
   }
 
   // print info
-  /*debug_video();
-  debug_window(window);
-  debug_renderer(renderer);*/
+  debug_video();
 
-  /////////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////////
-  // click control
-  /////////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+// click control
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 
 #define CURSOR_AREA(x1, y1, x2, y2)                                            \
   if ((cursor.x > x1) && (cursor.y > y1) && (cursor.x < x2) && (cursor.y < y2))
@@ -181,10 +165,10 @@ int main(int argc, char **argv) {
   /////////////////////////////////////////////////////////////////////////////
 
   // intro vars
-  SDL_Texture *logo;
+  SDL_Surface *logo;
 
   // startscreen vars
-  SDL_Texture *fundo, *titulo, *start, *gallery;
+  SDL_Surface *fundo, *titulo, *start, *gallery;
   SDL_Rect t_pos, s_pos, g_pos;
   int t_pos_x_max, t_pos_x_min, t_pos_x_delta, s_pos_y_max, s_pos_y_min,
       s_pos_xy_delta, g_pos_y_max, g_pos_y_min, g_pos_xy_delta;
@@ -226,8 +210,58 @@ int main(int argc, char **argv) {
 
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
-      if (e.type == SDL_QUIT) {
+      switch (e.type) {
+      case SDL_QUIT:
         start_active = false;
+        break;
+
+#define KSTATE(k, j)                                                           \
+  if (e.key.keysym.sym == k) {                                                 \
+    state[k] = j;                                                              \
+  }
+      case SDL_KEYDOWN:
+        if (e.key.keysym.sym == SDLK_ESCAPE) {
+          start_active = false;
+        }
+        KSTATE(SDLK_w, true);
+        KSTATE(SDLK_z, true);
+        KSTATE(SDLK_s, true);
+        KSTATE(SDLK_a, true);
+        KSTATE(SDLK_LCTRL, true);
+        KSTATE(SDLK_RCTRL, true);
+        KSTATE(SDLK_LSHIFT, true);
+        KSTATE(SDLK_RSHIFT, true);
+        KSTATE(SDLK_DOWN, true);
+        KSTATE(SDLK_UP, true);
+        KSTATE(SDLK_RIGHT, true);
+        KSTATE(SDLK_LEFT, true);
+        KSTATE(SDLK_1, true);
+        KSTATE(SDLK_2, true);
+        KSTATE(SDLK_RALT, true);
+        KSTATE(SDLK_LALT, true);
+        break;
+
+      case SDL_KEYUP:
+        KSTATE(SDLK_w, false);
+        KSTATE(SDLK_z, false);
+        KSTATE(SDLK_s, false);
+        KSTATE(SDLK_a, false);
+        KSTATE(SDLK_LCTRL, false);
+        KSTATE(SDLK_RCTRL, false);
+        KSTATE(SDLK_LSHIFT, false);
+        KSTATE(SDLK_RSHIFT, false);
+        KSTATE(SDLK_DOWN, false);
+        KSTATE(SDLK_UP, false);
+        KSTATE(SDLK_RIGHT, false);
+        KSTATE(SDLK_LEFT, false);
+        KSTATE(SDLK_1, false);
+        KSTATE(SDLK_2, false);
+        KSTATE(SDLK_RALT, false);
+        KSTATE(SDLK_LALT, false);
+        break;
+
+      default:
+        break;
       }
     }
 
@@ -251,34 +285,33 @@ int main(int argc, char **argv) {
     if (yy > 0)
       joystick_buttonstate[SDL_CONTROLLER_BUTTON_DOWN] = true;
 
-    // convert keyboard state to joystick state
-    const Uint8 *state = SDL_GetKeyboardState(NULL);
+// convert keyboard state to joystick state
 #define KEYB_CONVERT(j, k)                                                     \
   if (state[k]) {                                                              \
     joystick_buttonstate[j] = true;                                            \
   }
 
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_TRIANGLE, SDL_SCANCODE_W);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_CROSS, SDL_SCANCODE_Z);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_CIRCLE, SDL_SCANCODE_S);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_SQUARE, SDL_SCANCODE_A);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_L1, SDL_SCANCODE_LCTRL);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_R1, SDL_SCANCODE_RCTRL);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_L2, SDL_SCANCODE_LSHIFT);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_R2, SDL_SCANCODE_RSHIFT);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_DOWN, SDL_SCANCODE_DOWN);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_UP, SDL_SCANCODE_UP);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_RIGHT, SDL_SCANCODE_RIGHT);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_LEFT, SDL_SCANCODE_LEFT);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_START, SDL_SCANCODE_1);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_SELECT, SDL_SCANCODE_2)
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_R3, SDL_SCANCODE_RALT);
-    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_L3, SDL_SCANCODE_LALT);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_TRIANGLE, SDLK_w);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_CROSS, SDLK_z);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_CIRCLE, SDLK_s);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_SQUARE, SDLK_a);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_L1, SDLK_LCTRL);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_R1, SDLK_RCTRL);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_L2, SDLK_LSHIFT);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_R2, SDLK_RSHIFT);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_DOWN, SDLK_DOWN);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_UP, SDLK_UP);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_RIGHT, SDLK_RIGHT);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_LEFT, SDLK_LEFT);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_START, SDLK_1);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_SELECT, SDLK_2)
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_R3, SDLK_RALT);
+    KEYB_CONVERT(SDL_CONTROLLER_BUTTON_L3, SDLK_LALT);
 
     // read joystick state
     if (joystick) {
       SDL_JoystickUpdate();
-      /*debug_joystick(joystick);*/
+      debug_joystick(joystick);
       for (int i = 0; i < JOYBUTTONS; ++i) {
         joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
       }
@@ -299,23 +332,22 @@ int main(int argc, char **argv) {
 #ifndef SKIP_INTRO
     case INTRO_INIT: {
       // white is our "clear screen' color
-      SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-      logo = load_texture(renderer, DATA_PATH "LOGO" GRAPH_EXT);
+      /*      SDL_SetRenderDrawColor(renderer, 255, 255, 255,
+       * SDL_ALPHA_OPAQUE);*/
+      logo = load_surface(DATA_PATH "LOGO" GRAPH_EXT);
       PHASE = INTRO_MAIN;
     } break;
 
     case INTRO_MAIN: {
       // fade logo in and out
-      set_alpha_rate(64);
-      fade_in_out(renderer, logo, true, true);
-      effect_play(SOUND_LOGO);
-      fade_in_out(renderer, logo, true, false);
+      fade_in_out(screen, logo, true);
+      fade_in_out(screen, logo, false);
       PHASE = INTRO_END;
     } break;
 
     case INTRO_END: {
       // free logo
-      SDL_DestroyTexture(logo);
+      SDL_FreeSurface(logo);
       PHASE = START_INIT;
     } break;
 #endif
@@ -326,37 +358,29 @@ int main(int argc, char **argv) {
 /////////////////////////////////////////////////////////////////////////////
 #ifndef SKIP_STARTSCREEN
     case START_INIT: {
-      fundo = load_texture(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
-      titulo = load_texture(renderer, DATA_PATH "TITULO" GRAPH_EXT);
-      start = load_texture(renderer, DATA_PATH "START" GRAPH_EXT);
-      gallery = load_texture(renderer, DATA_PATH "GALERIA" GRAPH_EXT);
+      fundo = load_surface(DATA_PATH "FUNDO" GRAPH_EXT);
+      titulo = load_surface(DATA_PATH "TITULO" GRAPH_EXT);
+      start = load_surface(DATA_PATH "START" GRAPH_EXT);
+      gallery = load_surface(DATA_PATH "GALERIA" GRAPH_EXT);
 
       // fade start screen in
-      set_alpha_rate(30);
-      fade_in_out(renderer, fundo, false, true);
-
-      // reset alpha
-      SDL_SetTextureAlphaMod(fundo, SDL_ALPHA_OPAQUE);
+      fade_in_out(screen, fundo, true);
 
       // init positions
-      int tw, th;
-      SDL_QueryTexture(titulo, NULL, NULL, &tw, &th);
-      t_pos.x = (WIDTH - tw) / 2;
+      t_pos.x = (WIDTH - titulo->w) / 2;
       t_pos.y = (HEIGHT / 4) * 1;
-      t_pos.w = tw;
-      t_pos.h = th;
+      t_pos.w = titulo->w;
+      t_pos.h = titulo->h;
 
-      SDL_QueryTexture(start, NULL, NULL, &tw, &th);
-      s_pos.x = (WIDTH - tw) / 2;
+      s_pos.x = (WIDTH - start->w) / 2;
       s_pos.y = (HEIGHT / 4) * 3;
-      s_pos.w = tw;
-      s_pos.h = th;
+      s_pos.w = start->w;
+      s_pos.h = start->h;
 
-      SDL_QueryTexture(gallery, NULL, NULL, &tw, &th);
-      g_pos.x = (WIDTH - tw) / 2;
+      g_pos.x = (WIDTH - gallery->w) / 2;
       g_pos.y = (HEIGHT / 4) * 3.5;
-      g_pos.w = tw;
-      g_pos.h = th;
+      g_pos.w = gallery->w;
+      g_pos.h = gallery->h;
 
       // title position and delta
       t_pos_x_max = t_pos.x + 50;
@@ -406,15 +430,18 @@ int main(int argc, char **argv) {
         }
       }
 
-      // clear and paste fundo, titulo, start
-      SDL_RenderClear(renderer);
-      SDL_RenderCopy(renderer, fundo, NULL, NULL);
-      SDL_RenderCopy(renderer, titulo, NULL, &t_pos);
-      SDL_RenderCopy(renderer, start, NULL, &s_pos);
-      SDL_RenderCopy(renderer, gallery, NULL, &g_pos);
+      // paste fundo
+      SDL_BlitSurface(fundo, NULL, screen, NULL);
+      SDL_BlitSurface(titulo, NULL, screen, &t_pos);
+      SDL_Surface *tmp = ScaleSurface(start, s_pos.w, s_pos.h);
+      SDL_BlitSurface(tmp, NULL, screen, &s_pos);
+      SDL_FreeSurface(tmp);
+      tmp = ScaleSurface(gallery, g_pos.w, g_pos.h);
+      SDL_BlitSurface(tmp, NULL, screen, &g_pos);
+      SDL_FreeSurface(tmp);
 
       // render
-      SDL_RenderPresent(renderer);
+      SDL_Flip(screen);
 
       // choose option
       dy = 0;
@@ -451,11 +478,10 @@ int main(int argc, char **argv) {
     } break;
 
     case START_END: {
-      set_alpha_rate(30);
-      fade_in_out(renderer, fundo, false, false);
-      SDL_DestroyTexture(fundo);
-      SDL_DestroyTexture(titulo);
-      SDL_DestroyTexture(start);
+      fade_in_out(screen, fundo, false);
+      SDL_FreeSurface(fundo);
+      SDL_FreeSurface(titulo);
+      SDL_FreeSurface(start);
       PHASE = next_phase;
     } break;
 #endif
@@ -875,9 +901,8 @@ int main(int argc, char **argv) {
       // screen boundaries check (limit)
       cursor.x =
           (cursor.x < 0) ? 0 : (cursor.x >= WIDTH - 1) ? (WIDTH - 1) : cursor.x;
-      cursor.y = (cursor.y < 0)
-                     ? 0
-                     : (cursor.y >= HEIGHT - 1) ? (HEIGHT - 1) : cursor.y;
+      cursor.y = (cursor.y < 0) ? 0 : (cursor.y >= HEIGHT - 1) ? (HEIGHT - 1)
+                                                               : cursor.y;
 
       // change/reload current drawing
       if ((draw_current != draw_new) || (draw_refresh)) {
@@ -949,11 +974,11 @@ int main(int argc, char **argv) {
       PHASE = START_INIT;
     } break;
 #endif
-      /////////////////////////////////////////////////////////////////////////////
-      /////////////////////////////////////////////////////////////////////////////
-      // start screen
-      /////////////////////////////////////////////////////////////////////////////
-      /////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
+    // start screen
+    /////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
 
     default: {
       if (PHASE == FINISHED) {

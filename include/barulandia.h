@@ -1,11 +1,15 @@
 #pragma once
 
-//#define DEBUG 1
+#define DEBUG 1
 
-//#define SKIP_INTRO
+typedef void SDL_Renderer;
+typedef int SDL_AudioDeviceID;
+typedef void SDL_Texture;
+
+// #define SKIP_INTRO
 //#define SKIP_STARTSCREEN
-//#define SKIP_GALLERY
-//#define SKIP_MAIN
+#define SKIP_GALLERY
+#define SKIP_MAIN
 
 #define MAX_STRING 2048
 
@@ -25,10 +29,10 @@
 
 #define GRAPH_EXT ".PNG"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_syswm.h>
-#include <SDL2/SDL_ttf.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
+#include <SDL/SDL_syswm.h>
+#include <SDL/SDL_ttf.h>
 
 #ifdef PS3
 #include <dbglogger.h>
@@ -40,7 +44,7 @@
 #endif
 
 #ifdef PS3
-#define DATA_PATH "/dev_hdd0/game/SDL20BARU/USRDIR/"
+#define DATA_PATH "/dev_hdd0/game/SDL12BARU/USRDIR/"
 #else
 #define DATA_PATH "../release/USRDIR/"
 #endif
@@ -56,6 +60,8 @@
 #include "sound.h"
 #include "video.h"
 
+#include <bitset>
+#include <cmath>
 #include <dirent.h>
 #include <list>
 #include <queue>
