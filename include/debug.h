@@ -21,6 +21,7 @@
 #define dbglogger_screenshot_tmp(x)
 #endif
 
+void debug_keyboard(SDL_KeyboardEvent *key);
 void debug_joystick(SDL_Joystick *joystick);
 void debug_video();
 void ret2psload();

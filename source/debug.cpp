@@ -1,5 +1,56 @@
 #include "debug.h"
 
+void debug_keyboard(SDL_KeyboardEvent *key) {
+  if (key->type == SDL_KEYUP)
+    dbglogger_printf("Release:-");
+  else
+    dbglogger_printf("Press:-");
+  dbglogger_printf("\tScancode: 0x%02X", key->keysym.scancode);
+  dbglogger_printf(", Name: %s", SDL_GetKeyName(key->keysym.sym));
+
+  if (key->type == SDL_KEYDOWN) {
+
+    dbglogger_printf(", Unicode: ");
+    if (key->keysym.unicode < 0x80 && key->keysym.unicode > 0) {
+      dbglogger_printf("%c (0x%04X)", (char)key->keysym.unicode,
+                       key->keysym.unicode);
+    } else {
+      dbglogger_printf("? (0x%04X)", key->keysym.unicode);
+    }
+  }
+  SDLMod mod = (key->keysym.mod);
+  dbglogger_printf("\tModifers: ");
+
+  if (mod == KMOD_NONE) {
+    dbglogger_printf("None\n");
+    return;
+  }
+
+  if (mod & KMOD_NUM)
+    dbglogger_printf("NUMLOCK ");
+  if (mod & KMOD_CAPS)
+    dbglogger_printf("CAPSLOCK ");
+  if (mod & KMOD_LCTRL)
+    dbglogger_printf("LCTRL ");
+  if (mod & KMOD_RCTRL)
+    dbglogger_printf("RCTRL ");
+  if (mod & KMOD_RSHIFT)
+    dbglogger_printf("RSHIFT ");
+  if (mod & KMOD_LSHIFT)
+    dbglogger_printf("LSHIFT ");
+  if (mod & KMOD_RALT)
+    dbglogger_printf("RALT ");
+  if (mod & KMOD_LALT)
+    dbglogger_printf("LALT ");
+  if (mod & KMOD_CTRL)
+    dbglogger_printf("CTRL ");
+  if (mod & KMOD_SHIFT)
+    dbglogger_printf("SHIFT ");
+  if (mod & KMOD_ALT)
+    dbglogger_printf("ALT ");
+  dbglogger_printf("\n");
+}
+
 void debug_joystick(SDL_Joystick *joystick) {
 #ifdef DEBUG
   // dbglogger_printf("LX %d LY %d RX %d RY %d\n",

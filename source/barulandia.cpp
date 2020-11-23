@@ -35,14 +35,15 @@ int main(int argc, char **argv) {
 
 #ifdef PS3
   // XMB exit
-  sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0,
-                          [](uint64_t status, uint64_t param, void *userdata) {
-                            if (status == SYSUTIL_EXIT_GAME) {
-                              cleanup();
-                              sysProcessExit(1);
-                            }
-                          },
-                          NULL);
+  sysUtilRegisterCallback(
+      SYSUTIL_EVENT_SLOT0,
+      [](uint64_t status, uint64_t param, void *userdata) {
+        if (status == SYSUTIL_EXIT_GAME) {
+          cleanup();
+          sysProcessExit(1);
+        }
+      },
+      NULL);
 #endif
 
   /////////////////////////////////////////////////////////////////////////////
@@ -103,7 +104,7 @@ int main(int argc, char **argv) {
 
   // init screen
   screen = SDL_SetVideoMode(WIDTH, HEIGHT, 0,
-                            SDL_SWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
+                            SDL_SWSURFACE | SDL_DOUBLEBUF /*| SDL_FULLSCREEN*/);
   if (screen == NULL) {
     dbglogger_printf("SDL_SetVideoMode: %s", SDL_GetError());
     return -1;
@@ -112,11 +113,11 @@ int main(int argc, char **argv) {
   // print info
   debug_video();
 
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-// click control
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  // click control
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
 #define CURSOR_AREA(x1, y1, x2, y2)                                            \
   if ((cursor.x > x1) && (cursor.y > y1) && (cursor.x < x2) && (cursor.y < y2))
@@ -179,11 +180,9 @@ int main(int argc, char **argv) {
   struct draws {
     char *name;
     SDL_Surface *surface;
-    SDL_Texture *texture;
   };
   list<draws> drawings;
   list<draws>::iterator drawing_ptr;
-  SDL_Texture *tfundo;
   SDL_Surface *buttons, *t_move, *t_continue, *t_delete, *t_cancel, *sfundo;
   SDL_Surface *draw_continue = NULL;
 
@@ -220,6 +219,7 @@ int main(int argc, char **argv) {
     state[k] = j;                                                              \
   }
       case SDL_KEYDOWN:
+        debug_keyboard(&e.key);
         if (e.key.keysym.sym == SDLK_ESCAPE) {
           start_active = false;
         }
@@ -331,9 +331,6 @@ int main(int argc, char **argv) {
 /////////////////////////////////////////////////////////////////////////////
 #ifndef SKIP_INTRO
     case INTRO_INIT: {
-      // white is our "clear screen' color
-      /*      SDL_SetRenderDrawColor(renderer, 255, 255, 255,
-       * SDL_ALPHA_OPAQUE);*/
       logo = load_surface(DATA_PATH "LOGO" GRAPH_EXT);
       PHASE = INTRO_MAIN;
     } break;
@@ -431,9 +428,10 @@ int main(int argc, char **argv) {
       }
 
       // paste fundo
+      SDL_Surface *tmp;
       SDL_BlitSurface(fundo, NULL, screen, NULL);
       SDL_BlitSurface(titulo, NULL, screen, &t_pos);
-      SDL_Surface *tmp = ScaleSurface(start, s_pos.w, s_pos.h);
+      tmp = ScaleSurface(start, s_pos.w, s_pos.h);
       SDL_BlitSurface(tmp, NULL, screen, &s_pos);
       SDL_FreeSurface(tmp);
       tmp = ScaleSurface(gallery, g_pos.w, g_pos.h);
@@ -496,7 +494,6 @@ int main(int argc, char **argv) {
       draws i;
 
       // load resources
-      fundo = load_texture(renderer, DATA_PATH "FUNDO" GRAPH_EXT);
       sfundo = load_surface(DATA_PATH "FUNDO" GRAPH_EXT);
 
       // create surfaces and textures
@@ -508,7 +505,6 @@ int main(int argc, char **argv) {
             snprintf(i.name, MAX_STRING, "%sSAVEDATA/%s", DATA_PATH,
                      en->d_name);
             i.surface = load_surface(i.name);
-            i.texture = load_texture(renderer, i.name);
             drawings.push_back(i);
           }
         }
@@ -518,8 +514,7 @@ int main(int argc, char **argv) {
       // if not files found, push empty values
       if (drawings.empty()) {
         i.name = NULL;
-        i.surface = NULL;
-        i.texture = load_texture(renderer, DATA_PATH "NOTFOUND" GRAPH_EXT);
+        i.surface = load_surface(DATA_PATH "NOTFOUND" GRAPH_EXT);
         drawings.push_back(i);
       }
 
@@ -573,9 +568,6 @@ int main(int argc, char **argv) {
       SDL_BlitSurface(t_cancel, NULL, sfundo, &dstrect);
       /*dstrect.x += t_cancel->w;*/
 
-      tfundo = SDL_CreateTextureFromSurface(renderer, sfundo);
-      SDL_FreeSurface(sfundo);
-
       // free text surfaces
       SDL_FreeSurface(t_move);
       SDL_FreeSurface(t_continue);
@@ -609,7 +601,11 @@ int main(int argc, char **argv) {
 
       // exit to game
       BUTTON_PRESSED(SDL_CONTROLLER_BUTTON_CROSS) {
-        draw_continue = drawing_ptr->surface;
+        if (drawing_ptr->name) {
+          draw_continue = drawing_ptr->surface;
+        } else {
+          draw_continue = NULL;
+        }
         PHASE = GALLERY_END;
       }
       // exit to menu
@@ -624,7 +620,6 @@ int main(int argc, char **argv) {
           remove(drawing_ptr->name);
           // free
           SDL_FreeSurface(drawing_ptr->surface);
-          SDL_DestroyTexture(drawing_ptr->texture);
           delete[] drawing_ptr->name;
           // remove from list
           drawing_ptr = drawings.erase(drawing_ptr);
@@ -633,8 +628,7 @@ int main(int argc, char **argv) {
           if (drawings.empty()) {
             draws i;
             i.name = NULL;
-            i.surface = NULL;
-            i.texture = load_texture(renderer, DATA_PATH "NOTFOUND" GRAPH_EXT);
+            i.surface = load_surface(DATA_PATH "NOTFOUND" GRAPH_EXT);
             drawings.push_back(i);
           }
 
@@ -652,10 +646,10 @@ int main(int argc, char **argv) {
       // render fundo
       SDL_Rect dstrect;
       list<draws>::iterator ptr;
-      SDL_RenderClear(renderer);
-      SDL_RenderCopy(renderer, tfundo, NULL, NULL);
+      SDL_BlitSurface(sfundo, NULL, screen, NULL);
 
       // previous
+      SDL_Surface *tmp;
       if (drawing_ptr != drawings.begin()) {
         if (prev(drawing_ptr) != drawings.begin()) {
           // n-2 exists
@@ -666,7 +660,7 @@ int main(int argc, char **argv) {
           dstrect.h = DRAW_H / 2.5;
           dstrect.x = (WIDTH - dstrect.w) / 8;
           dstrect.y = (HEIGHT - dstrect.h) / 2;
-          SDL_RenderCopy(renderer, ptr->texture, NULL, &dstrect);
+          scale_show(screen, ptr->surface, &dstrect);
         }
         // n-1 exists
         ptr = drawing_ptr;
@@ -675,7 +669,7 @@ int main(int argc, char **argv) {
         dstrect.h = DRAW_H / 2;
         dstrect.x = (WIDTH - dstrect.w) / 4;
         dstrect.y = (HEIGHT - dstrect.h) / 2;
-        SDL_RenderCopy(renderer, ptr->texture, NULL, &dstrect);
+        scale_show(screen, ptr->surface, &dstrect);
       }
 
       // next
@@ -689,7 +683,7 @@ int main(int argc, char **argv) {
           dstrect.h = DRAW_H / 2.5;
           dstrect.x = ((WIDTH - dstrect.w) / 8) * 7;
           dstrect.y = (HEIGHT - dstrect.h) / 2;
-          SDL_RenderCopy(renderer, ptr->texture, NULL, &dstrect);
+          scale_show(screen, ptr->surface, &dstrect);
         }
         // n+1 exists
         ptr = drawing_ptr;
@@ -698,7 +692,7 @@ int main(int argc, char **argv) {
         dstrect.h = DRAW_H / 2;
         dstrect.x = ((WIDTH - dstrect.w) / 4) * 3;
         dstrect.y = (HEIGHT - dstrect.h) / 2;
-        SDL_RenderCopy(renderer, ptr->texture, NULL, &dstrect);
+        scale_show(screen, ptr->surface, &dstrect);
       }
 
       // position of main draw
@@ -706,10 +700,10 @@ int main(int argc, char **argv) {
       dstrect.h = DRAW_H / 1.5;
       dstrect.x = (WIDTH - dstrect.w) / 2;
       dstrect.y = (HEIGHT - dstrect.h) / 2;
-      SDL_RenderCopy(renderer, drawing_ptr->texture, NULL, &dstrect);
+      scale_show(screen, drawing_ptr->surface, &dstrect);
 
       // show
-      SDL_RenderPresent(renderer);
+      SDL_Flip(screen);
 
     } break;
 
@@ -724,14 +718,10 @@ int main(int argc, char **argv) {
           if (i.surface)
             SDL_FreeSurface(i.surface);
         }
-        if (i.texture)
-          SDL_DestroyTexture(i.texture);
         if (i.name)
           delete[] i.name;
         drawings.pop_front();
       }
-
-      SDL_DestroyTexture(tfundo);
 
       if (draw_continue) {
         // exit to game
@@ -742,9 +732,8 @@ int main(int argc, char **argv) {
         PHASE = START_INIT;
       }
 
-      set_alpha_rate(30);
-      fade_in_out(renderer, fundo, false, false);
-      SDL_DestroyTexture(fundo);
+      fade_in_out(screen, sfundo, false);
+      SDL_FreeSurface(sfundo);
     } break;
 #endif
 /////////////////////////////////////////////////////////////////////////////
@@ -901,8 +890,9 @@ int main(int argc, char **argv) {
       // screen boundaries check (limit)
       cursor.x =
           (cursor.x < 0) ? 0 : (cursor.x >= WIDTH - 1) ? (WIDTH - 1) : cursor.x;
-      cursor.y = (cursor.y < 0) ? 0 : (cursor.y >= HEIGHT - 1) ? (HEIGHT - 1)
-                                                               : cursor.y;
+      cursor.y = (cursor.y < 0)
+                     ? 0
+                     : (cursor.y >= HEIGHT - 1) ? (HEIGHT - 1) : cursor.y;
 
       // change/reload current drawing
       if ((draw_current != draw_new) || (draw_refresh)) {
@@ -974,11 +964,11 @@ int main(int argc, char **argv) {
       PHASE = START_INIT;
     } break;
 #endif
-    /////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////
-    // start screen
-    /////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////
+      // start screen
+      /////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////
 
     default: {
       if (PHASE == FINISHED) {

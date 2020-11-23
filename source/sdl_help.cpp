@@ -40,3 +40,10 @@ SDL_Surface *ScaleSurface(SDL_Surface *Surface, Uint16 Width, Uint16 Height) {
 
   return _ret;
 }
+
+void scale_show(SDL_Surface *destin, SDL_Surface *source, SDL_Rect *rect) {
+  SDL_Surface *tmp = ScaleSurface(source, rect->w, rect->h);
+  SDL_BlitSurface(tmp, NULL, destin, rect);
+  SDL_FreeSurface(tmp);
+  return;
+}

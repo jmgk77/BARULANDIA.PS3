@@ -8,7 +8,7 @@ typedef void SDL_Texture;
 
 // #define SKIP_INTRO
 //#define SKIP_STARTSCREEN
-#define SKIP_GALLERY
+//#define SKIP_GALLERY
 #define SKIP_MAIN
 
 #define MAX_STRING 2048
