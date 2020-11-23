@@ -34,7 +34,7 @@ int do_save_png(void *screen) {
   return 0;
 }
 
-void save_png(SDL_Renderer *renderer, SDL_Surface *screen) {
+void save_png(SDL_Surface *screen) {
   // SDL_Thread *thread = SDL_CreateThread(do_save_png, "SAVE_PNG", screen);
 
   // effect_play(SOUND_CLICK);

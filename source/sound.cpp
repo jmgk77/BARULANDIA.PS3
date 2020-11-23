@@ -1,6 +1,6 @@
 #include "sound.h"
 
-SDL_AudioDeviceID deviceId;
+// SDL_AudioDeviceID deviceId;
 
 void effect_play(int index) {
   // char buf[MAX_STRING];

@@ -2,14 +2,10 @@
 
 #define DEBUG 1
 
-typedef void SDL_Renderer;
-typedef int SDL_AudioDeviceID;
-typedef void SDL_Texture;
-
-// #define SKIP_INTRO
+//#define SKIP_INTRO
 //#define SKIP_STARTSCREEN
 //#define SKIP_GALLERY
-#define SKIP_MAIN
+//#define SKIP_MAIN
 
 #define MAX_STRING 2048
 
@@ -30,6 +26,7 @@ typedef void SDL_Texture;
 #define GRAPH_EXT ".PNG"
 
 #include <SDL/SDL.h>
+#include <SDL/SDL_audio.h>
 #include <SDL/SDL_image.h>
 #include <SDL/SDL_syswm.h>
 #include <SDL/SDL_ttf.h>

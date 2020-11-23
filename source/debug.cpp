@@ -18,7 +18,7 @@ void debug_keyboard(SDL_KeyboardEvent *key) {
       dbglogger_printf("? (0x%04X)", key->keysym.unicode);
     }
   }
-  SDLMod mod = (key->keysym.mod);
+  int mod = (key->keysym.mod);
   dbglogger_printf("\tModifers: ");
 
   if (mod == KMOD_NONE) {
