@@ -1,53 +1,61 @@
 #include "sound.h"
 
-// SDL_AudioDeviceID deviceId;
+static Uint8 *audio_chunk, *audio_pos, *wavBuffer;
+static Uint32 audio_len;
+
+void fill_audio(void *udata, Uint8 *stream, int len) {
+  if (audio_len == 0)
+    return;
+  len = (len > audio_len ? audio_len : len);
+  SDL_MixAudio(stream, audio_pos, len, SDL_MIX_MAXVOLUME);
+  audio_pos += len;
+  audio_len -= len;
+}
 
 void effect_play(int index) {
-  // char buf[MAX_STRING];
-  // snprintf(buf, MAX_STRING, "%sSOUND%d.WAV", DATA_PATH, index);
-  // dbglogger_printf("PLAYING: %s\n", buf);
+  char buf[MAX_STRING];
+  snprintf(buf, MAX_STRING, "%sSOUND%d.WAV", DATA_PATH, index);
+  dbglogger_printf("PLAYING: %s\n", buf);
 
-  // // load wav
-  // SDL_AudioSpec wave;
-  // Uint8 *wavBuffer;
-  // Uint32 wavLength;
+  // pause and free
+  SDL_PauseAudio(1);
+  audio_len = 0;
+  SDL_FreeWAV(wavBuffer);
 
-  // SDL_AudioSpec *t = SDL_LoadWAV(buf, &wave, &wavBuffer, &wavLength);
-  // // check wave.format becoz PS3 SDL dont report error
-  // if ((t == NULL) || (!wave.format)) {
-  //   fprintf(stderr, "Could not open %s: %s\n", buf, SDL_GetError());
-  //   return;
-  // }
-  // /*debug_audio_spec(&wave);*/
+  // load wav
+  SDL_AudioSpec wave;
 
-  // // stop previous audio
-  // SDL_ClearQueuedAudio(deviceId);
+  SDL_AudioSpec *t = SDL_LoadWAV(buf, &wave, &audio_chunk, &audio_len);
+  // check wave.format becoz PS3 SDL dont report error
+  if ((t == NULL) || (!wave.format)) {
+    fprintf(stderr, "Could not open %s: %s\n", buf, SDL_GetError());
+    return;
+  }
+  debug_audio_spec(&wave);
 
-  // // play new audio
-  // SDL_QueueAudio(deviceId, wavBuffer, wavLength);
-  // SDL_FreeWAV(wavBuffer);
+  // play new audio
+  audio_pos = audio_chunk;
 
-  // SDL_PauseAudioDevice(deviceId, 0);
+  SDL_PauseAudio(0);
 }
 
 void sound_init() {
-  // // sdl
-  // SDL_AudioSpec want, have;
-  // SDL_zero(want);
-  // // avoid PS3's default AUDIO_F32MSB
-  // want.format = AUDIO_S16LSB;
-  // want.freq = 16000;
-  // // mono
-  // want.channels = 1;
-  // deviceId = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-  // if (deviceId == 0) {
-  //   dbglogger_printf("Failed to open audio: %s", SDL_GetError());
-  // }
+  SDL_AudioSpec wanted;
 
-  // debug_audio_spec(&have);
+  /* Set the audio format */
+  wanted.freq = 16000;
+  wanted.format = AUDIO_S16LSB;
+  wanted.channels = 1;   /* 1 = mono, 2 = stereo */
+  wanted.samples = 1024; /* Good low-latency value for callback */
+  wanted.callback = fill_audio;
+  wanted.userdata = NULL;
+
+  /* Open the audio device, forcing the desired format */
+  if (SDL_OpenAudio(&wanted, NULL) < 0) {
+    fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
+  }
+  debug_audio_spec(&wanted);
+  return;
 }
 
-void sound_end() {
-  // if (deviceId)
-  //   SDL_CloseAudioDevice(deviceId);
-}
+void sound_end() { SDL_CloseAudio(); }

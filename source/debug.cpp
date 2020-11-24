@@ -150,295 +150,137 @@ void ret2psload() {
 #endif
 }
 
-// void debug_format(int tf) {
-// #ifdef DEBUG
-//   const char *s;
-//   switch (SDL_PIXELTYPE(tf)) {
-//   case SDL_PIXELTYPE_UNKNOWN:
-//     s = "SDL_PIXELTYPE_UNKNOWN";
-//     break;
-//   case SDL_PIXELTYPE_INDEX1:
-//     s = "SDL_PIXELTYPE_INDEX1";
-//     break;
-//   case SDL_PIXELTYPE_INDEX4:
-//     s = "SDL_PIXELTYPE_INDEX4";
-//     break;
-//   case SDL_PIXELTYPE_INDEX8:
-//     s = "SDL_PIXELTYPE_INDEX8";
-//     break;
-//   case SDL_PIXELTYPE_PACKED8:
-//     s = "SDL_PIXELTYPE_PACKED8";
-//     break;
-//   case SDL_PIXELTYPE_PACKED16:
-//     s = "SDL_PIXELTYPE_PACKED16";
-//     break;
-//   case SDL_PIXELTYPE_PACKED32:
-//     s = "SDL_PIXELTYPE_PACKED32";
-//     break;
-//   case SDL_PIXELTYPE_ARRAYU8:
-//     s = "SDL_PIXELTYPE_ARRAYU8";
-//     break;
-//   case SDL_PIXELTYPE_ARRAYU16:
-//     s = "SDL_PIXELTYPE_ARRAYU16";
-//     break;
-//   case SDL_PIXELTYPE_ARRAYU32:
-//     s = "SDL_PIXELTYPE_ARRAYU32";
-//     break;
-//   case SDL_PIXELTYPE_ARRAYF16:
-//     s = "SDL_PIXELTYPE_ARRAYF16";
-//     break;
-//   case SDL_PIXELTYPE_ARRAYF32:
-//     s = "SDL_PIXELTYPE_ARRAYF32";
-//     break;
-//   default:
-//     s = "ERROR";
-//     break;
-//   }
-//   dbglogger_printf("\tSDL_PIXELTYPE: %s\n", s);
+void debug_font(TTF_Font *font) {
+#ifdef DEBUG
+  dbglogger_printf("TTF_FontHeight          : %d\n", TTF_FontHeight(font));
+  dbglogger_printf("TTF_FontAscent          : %d\n", TTF_FontAscent(font));
+  dbglogger_printf("TTF_FontDescent         : %d\n", TTF_FontDescent(font));
+  dbglogger_printf("TTF_FontLineSkip        : %d\n", TTF_FontLineSkip(font));
+  dbglogger_printf("TTF_FontFaceIsFixedWidth: %d\n",
+                   TTF_FontFaceIsFixedWidth(font));
 
-//   switch (SDL_PIXELORDER(tf)) {
-//   case SDL_BITMAPORDER_NONE:
-//     s = "SDL_BITMAPORDER_NONE";
-//     break;
-//   case SDL_BITMAPORDER_4321:
-//     s = "SDL_BITMAPORDER_4321";
-//     break;
-//   case SDL_BITMAPORDER_1234:
-//     s = "SDL_BITMAPORDER_1234";
-//     break;
+  dbglogger_printf("TTF_FontFaceFamilyName  : \"%s\"\n",
+                   TTF_FontFaceFamilyName(font));
+  dbglogger_printf("TTF_FontFaceStyleName   : \"%s\"\n",
+                   TTF_FontFaceStyleName(font));
+  if (TTF_GlyphIsProvided(font, 'g')) {
+    int minx, maxx, miny, maxy, advance;
+    TTF_GlyphMetrics(font, 'g', &minx, &maxx, &miny, &maxy, &advance);
+    dbglogger_printf("TTF_GlyphMetrics('g'):\n\tminx=%d\n\tmaxx=%d\n\tminy=%"
+                     "d\n\tmaxy=%d\n\tadvance=%d\n",
+                     minx, maxx, miny, maxy, advance);
+  } else {
+    dbglogger_printf("TTF_GlyphMetrics('g'): unavailable in font!\n");
+  }
+#endif
+}
 
-//     /* case SDL_PACKEDORDER_NONE:
-//        s1 = "SDL_PACKEDORDER_NONE";
-//        break;
-//      case SDL_PACKEDORDER_XRGB:
-//        s1 = "SDL_PACKEDORDER_XRGB";
-//        break;
-//      case SDL_PACKEDORDER_RGBX:
-//        s1 = "SDL_PACKEDORDER_RGBX";
-//        break;*/
-//   case SDL_PACKEDORDER_ARGB:
-//     s = "SDL_PACKEDORDER_ARGB";
-//     break;
-//   case SDL_PACKEDORDER_RGBA:
-//     s = "SDL_PACKEDORDER_RGBA";
-//     break;
-//   case SDL_PACKEDORDER_XBGR:
-//     s = "SDL_PACKEDORDER_XBGR";
-//     break;
-//   case SDL_PACKEDORDER_BGRX:
-//     s = "SDL_PACKEDORDER_BGRX";
-//     break;
-//   case SDL_PACKEDORDER_ABGR:
-//     s = "SDL_PACKEDORDER_ABGR";
-//     break;
-//   case SDL_PACKEDORDER_BGRA:
-//     s = "SDL_PACKEDORDER_BGRA";
-//     break;
+void debug_audio_spec(SDL_AudioSpec *a) {
+#ifdef DEBUG
+  dbglogger_printf("freq %d\n", a->freq);
+  const char *s;
+  switch (a->format) {
+  case AUDIO_S8:
+    s = "AUDIO_S8";
+    break;
+  case AUDIO_U8:
+    s = "AUDIO_U8";
+    break;
+  case AUDIO_S16LSB:
+    s = "AUDIO_S16LSB";
+    break;
+  case AUDIO_S16MSB:
+    s = "AUDIO_S16MSB";
+    break;
+    /*  case AUDIO_S16SYS:
+        s = "AUDIO_S16SYS";
+        break;
+      case AUDIO_S16:
+        s = "AUDIO_S16";
+        break;
+      case AUDIO_S16LSB:
+        s = "AUDIO_S16LSB";
+        break;*/
+  case AUDIO_U16LSB:
+    s = "AUDIO_U16LSB";
+    break;
+  case AUDIO_U16MSB:
+    s = "AUDIO_U16MSB";
+    break;
+    /*  case AUDIO_U16SYS:
+        s = "AUDIO_U16SYS";
+        break;
+      case AUDIO_U16:
+        s = "AUDIO_U16";
+        break;
+      case AUDIO_U16LSB:
+        s = "AUDIO_U16LSB";
+        break;*/
+    /*  case AUDIO_S32LSB:
+        s = "AUDIO_S32LSB";
+        break;
+      case AUDIO_S32MSB:
+        s = "AUDIO_S32MSB";
+        break;*/
+    /*  case AUDIO_S32SYS:
+        s = "AUDIO_S32SYS";
+        break;
+      case AUDIO_S32:
+        s = "AUDIO_S32";
+        break;
+      case AUDIO_S32LSB:
+        s = "AUDIO_S32LSB";
+        break;*/
+    /*  case AUDIO_F32LSB:
+        s = "AUDIO_F32LSB";
+        break;
+      case AUDIO_F32MSB:
+        s = "AUDIO_F32MSB";
+        break;*/
+  /*  case AUDIO_F32SYS:
+      s = "AUDIO_F32SYS";
+      break;
+    case AUDIO_F32:
+      s = "AUDIO_F32";
+      break;
+    case AUDIO_F32LSB:
+      s = "AUDIO_F32LSB";
+      break;*/
+  default:
+    s = "???";
+    break;
+  }
+  dbglogger_printf("format %s\n", s);
+  dbglogger_printf("channels %d\n", a->channels);
+  dbglogger_printf("silence %d\n", a->silence);
+  dbglogger_printf("samples %d\n", a->samples);
+  dbglogger_printf("size %d\n", a->size);
+#endif
+}
 
-//   /*case SDL_ARRAYORDER_NONE:
-//     s2 = "SDL_ARRAYORDER_NONE";
-//     break;
-//   case SDL_ARRAYORDER_RGB:
-//     s2 = "SDL_ARRAYORDER_RGB";
-//     break;
-//   case SDL_ARRAYORDER_RGBA:
-//     s2 = "SDL_ARRAYORDER_RGBA";
-//     break;
-//   case SDL_ARRAYORDER_ARGB:
-//     s2 = "SDL_ARRAYORDER_ARGB";
-//     break;
-//   case SDL_ARRAYORDER_BGR:
-//     s2 = "SDL_ARRAYORDER_BGR";
-//     break;
-//   case SDL_ARRAYORDER_BGRA:
-//     s2 = "SDL_ARRAYORDER_BGRA";
-//     break;
-//   case SDL_ARRAYORDER_ABGR:
-//     s2 = "SDL_ARRAYORDER_ABGR";
-//     break;*/
-//   default:
-//     s = "ERROR";
-//     break;
-//   }
-//   dbglogger_printf("\tSDL_PIXELORDER: %s\n", s);
+#ifdef DEBUG
+#ifndef PS3
 
-//   switch (SDL_PIXELLAYOUT(tf)) {
+extern SDL_Surface *screen;
 
-//   case SDL_PACKEDLAYOUT_NONE:
-//     s = "SDL_PACKEDLAYOUT_NONE";
-//     break;
-//   case SDL_PACKEDLAYOUT_332:
-//     s = "SDL_PACKEDLAYOUT_332";
-//     break;
-//   case SDL_PACKEDLAYOUT_4444:
-//     s = "SDL_PACKEDLAYOUT_4444";
-//     break;
-//   case SDL_PACKEDLAYOUT_1555:
-//     s = "SDL_PACKEDLAYOUT_1555";
-//     break;
-//   case SDL_PACKEDLAYOUT_5551:
-//     s = "SDL_PACKEDLAYOUT_5551";
-//     break;
-//   case SDL_PACKEDLAYOUT_565:
-//     s = "SDL_PACKEDLAYOUT_565";
-//     break;
-//   case SDL_PACKEDLAYOUT_8888:
-//     s = "SDL_PACKEDLAYOUT_8888";
-//     break;
-//   case SDL_PACKEDLAYOUT_2101010:
-//     s = "SDL_PACKEDLAYOUT_2101010";
-//     break;
-//   case SDL_PACKEDLAYOUT_1010102:
-//     s = "SDL_PACKEDLAYOUT_1010102";
-//     break;
-//   default:
-//     s = "ERROR";
-//     break;
-//   }
-//   dbglogger_printf("\tSDL_PIXELLAYOUT: %s\n", s);
+void debug_screenshot() {
+  char buf[MAX_STRING];
+  time_t rawtime;
+  struct tm *t;
+  time(&rawtime);
+  t = gmtime(&rawtime);
+  snprintf(buf, MAX_STRING, "SCREENSHOT_%d_%02d_%02d_%02d_%02d_%02d%s",
+           t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min,
+           t->tm_sec, GRAPH_EXT);
+  SDL_Surface *surface = SDL_CreateRGBSurface(
+      0, WIDTH, HEIGHT, screen->format->BitsPerPixel, screen->format->Rmask,
+      screen->format->Gmask, screen->format->Bmask, screen->format->Amask);
+  SDL_FillRect(surface, NULL, SDL_MapRGBA(surface->format, 255, 255, 255, 255));
+  SDL_BlitSurface(screen, NULL, surface, NULL);
 
-//   dbglogger_printf("\tBITS(%d) BYTES(%d)\n", SDL_BITSPERPIXEL(tf),
-//                    SDL_BYTESPERPIXEL(tf));
+  SDL_SavePNG(surface, buf);
 
-//   dbglogger_printf("\tHAVE PALETTE: %s\n",
-//                    SDL_ISPIXELFORMAT_INDEXED(tf) ? "TRUE" : "FALSE");
-//   dbglogger_printf("\tHAVE ALPHA: %s\n",
-//                    SDL_ISPIXELFORMAT_ALPHA(tf) ? "TRUE" : "FALSE");
-//   dbglogger_printf("\tUNIQUE FORMAT: %s\n",
-//                    SDL_ISPIXELFORMAT_FOURCC(tf) ? "TRUE" : "FALSE");
-//   return;
-// #endif
-// }
-
-// void debug_font(TTF_Font *font) {
-// #ifdef DEBUG
-//   dbglogger_printf("TTF_FontHeight          : %d\n", TTF_FontHeight(font));
-//   dbglogger_printf("TTF_FontAscent          : %d\n", TTF_FontAscent(font));
-//   dbglogger_printf("TTF_FontDescent         : %d\n", TTF_FontDescent(font));
-//   dbglogger_printf("TTF_FontLineSkip        : %d\n", TTF_FontLineSkip(font));
-//   dbglogger_printf("TTF_FontFaceIsFixedWidth: %d\n",
-//                    TTF_FontFaceIsFixedWidth(font));
-
-//   dbglogger_printf("TTF_FontFaceFamilyName  : \"%s\"\n",
-//                    TTF_FontFaceFamilyName(font));
-//   dbglogger_printf("TTF_FontFaceStyleName   : \"%s\"\n",
-//                    TTF_FontFaceStyleName(font));
-//   if (TTF_GlyphIsProvided(font, 'g')) {
-//     int minx, maxx, miny, maxy, advance;
-//     TTF_GlyphMetrics(font, 'g', &minx, &maxx, &miny, &maxy, &advance);
-//     dbglogger_printf("TTF_GlyphMetrics('g'):\n\tminx=%d\n\tmaxx=%d\n\tminy=%"
-//                      "d\n\tmaxy=%d\n\tadvance=%d\n",
-//                      minx, maxx, miny, maxy, advance);
-//   } else {
-//     dbglogger_printf("TTF_GlyphMetrics('g'): unavailable in font!\n");
-//   }
-// #endif
-// }
-
-// void debug_audio_spec(SDL_AudioSpec *a) {
-// #ifdef DEBUG
-//   dbglogger_printf("freq %d\n", a->freq);
-//   const char *s;
-//   switch (a->format) {
-//   case AUDIO_S8:
-//     s = "AUDIO_S8";
-//     break;
-//   case AUDIO_U8:
-//     s = "AUDIO_U8";
-//     break;
-//   case AUDIO_S16LSB:
-//     s = "AUDIO_S16LSB";
-//     break;
-//   case AUDIO_S16MSB:
-//     s = "AUDIO_S16MSB";
-//     break;
-//     /*  case AUDIO_S16SYS:
-//         s = "AUDIO_S16SYS";
-//         break;
-//       case AUDIO_S16:
-//         s = "AUDIO_S16";
-//         break;
-//       case AUDIO_S16LSB:
-//         s = "AUDIO_S16LSB";
-//         break;*/
-//   case AUDIO_U16LSB:
-//     s = "AUDIO_U16LSB";
-//     break;
-//   case AUDIO_U16MSB:
-//     s = "AUDIO_U16MSB";
-//     break;
-//     /*  case AUDIO_U16SYS:
-//         s = "AUDIO_U16SYS";
-//         break;
-//       case AUDIO_U16:
-//         s = "AUDIO_U16";
-//         break;
-//       case AUDIO_U16LSB:
-//         s = "AUDIO_U16LSB";
-//         break;*/
-//   case AUDIO_S32LSB:
-//     s = "AUDIO_S32LSB";
-//     break;
-//   case AUDIO_S32MSB:
-//     s = "AUDIO_S32MSB";
-//     break;
-//     /*  case AUDIO_S32SYS:
-//         s = "AUDIO_S32SYS";
-//         break;
-//       case AUDIO_S32:
-//         s = "AUDIO_S32";
-//         break;
-//       case AUDIO_S32LSB:
-//         s = "AUDIO_S32LSB";
-//         break;*/
-//   case AUDIO_F32LSB:
-//     s = "AUDIO_F32LSB";
-//     break;
-//   case AUDIO_F32MSB:
-//     s = "AUDIO_F32MSB";
-//     break;
-//   /*  case AUDIO_F32SYS:
-//       s = "AUDIO_F32SYS";
-//       break;
-//     case AUDIO_F32:
-//       s = "AUDIO_F32";
-//       break;
-//     case AUDIO_F32LSB:
-//       s = "AUDIO_F32LSB";
-//       break;*/
-//   default:
-//     s = "???";
-//     break;
-//   }
-//   dbglogger_printf("format %s\n", s);
-//   dbglogger_printf("channels %d\n", a->channels);
-//   dbglogger_printf("silence %d\n", a->silence);
-//   dbglogger_printf("samples %d\n", a->samples);
-//   dbglogger_printf("size %d\n", a->size);
-// #endif
-// }
-
-// #ifdef DEBUG
-// #ifndef PS3
-
-// extern SDL_Renderer *renderer;
-
-// void debug_screenshot() {
-//   char buf[MAX_STRING];
-//   time_t rawtime;
-//   struct tm *t;
-//   time(&rawtime);
-//   t = gmtime(&rawtime);
-//   snprintf(buf, MAX_STRING, "SCREENSHOT_%d_%02d_%02d_%02d_%02d_%02d%s",
-//            t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour,
-//            t->tm_min,
-//            t->tm_sec, GRAPH_EXT);
-//   SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(
-//       0, WIDTH, HEIGHT, 32, SDL_PIXELFORMAT_ARGB8888);
-//   SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888,
-//                        surface->pixels, surface->pitch);
-//   IMG_SavePNG(surface, buf);
-//   SDL_FreeSurface(surface);
-// }
-// #endif
-// #endif
+  SDL_FreeSurface(surface);
+}
+#endif
+#endif

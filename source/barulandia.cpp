@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
     dbglogger_printf("TTF_OpenFont: %s\n", TTF_GetError());
     return -1;
   }
-  /*debug_font(font);*/
+  debug_font(font);
 
   // sdl sound init
   sound_init();
@@ -102,9 +102,6 @@ int main(int argc, char **argv) {
 
   // init joystick
   joystick = SDL_JoystickOpen(0);
-
-  // init mouse
-  /*  SDL_SetRelativeMouseMode(SDL_TRUE);*/
 
   // init screen
   screen = SDL_SetVideoMode(WIDTH, HEIGHT, 0,
@@ -276,20 +273,6 @@ int main(int argc, char **argv) {
       joystick_oldbuttonstate[i] = joystick_buttonstate[i];
       joystick_buttonstate[i] = false;
     }
-
-    // convert mouse state to joystick state
-    /*    int xx, yy;
-        int bb = SDL_GetRelativeMouseState(&xx, &yy);
-        if (bb & SDL_BUTTON(SDL_BUTTON_LEFT))
-          joystick_buttonstate[SDL_CONTROLLER_BUTTON_CROSS] = true;
-        if (xx > 0)
-          joystick_buttonstate[SDL_CONTROLLER_BUTTON_RIGHT] = true;
-        if (xx < 0)
-          joystick_buttonstate[SDL_CONTROLLER_BUTTON_LEFT] = true;
-        if (yy < 0)
-          joystick_buttonstate[SDL_CONTROLLER_BUTTON_UP] = true;
-        if (yy > 0)
-          joystick_buttonstate[SDL_CONTROLLER_BUTTON_DOWN] = true;*/
 
 #ifndef PS3
 
@@ -512,7 +495,7 @@ int main(int argc, char **argv) {
             i.name = new char[MAX_STRING];
             snprintf(i.name, MAX_STRING, "%sSAVEDATA/%s", DATA_PATH,
                      en->d_name);
-            i.surface = load_surface(i.name); /* */
+            i.surface = load_surface(i.name);
             drawings.push_back(i);
           }
         }
