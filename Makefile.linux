@@ -2,7 +2,7 @@ DIR = ./build
 TARGET  = $(DIR)/BARULANDIA.PS3.linux
 INCLUDE = ./include
 SRCS    = $(wildcard ./source/*.cpp)
-FLAGS   = -o$(TARGET) -Wall -g -std=gnu++11 -lSDL -lSDL_image -lSDL_ttf -lstdc++ -lm
+FLAGS   = -o$(TARGET) -Wall -g -std=gnu++11 -lSDL -lSDL_image -lSDL_ttf -lstdc++ -lm -lpng
 
 $(TARGET): $(DIR) $(SRCS)
 	gcc $(SRCS) -I$(INCLUDE) $(FLAGS)

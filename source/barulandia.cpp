@@ -96,6 +96,8 @@ int main(int argc, char **argv) {
 #ifndef PS3
   // keyboard state
   bool state[SDLK_LAST];
+  for (int i = 0; i < SDLK_LAST; i++)
+    state[i] = false;
 #endif
 
   // init joystick

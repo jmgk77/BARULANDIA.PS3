@@ -56,6 +56,7 @@
 #include "sdl_help.h"
 #include "sound.h"
 #include "video.h"
+#include "savepng.h"
 
 #include <bitset>
 #include <cmath>
@@ -63,6 +64,7 @@
 #include <list>
 #include <queue>
 #include <time.h>
+#include <png.h>
 
 using namespace std;
 
