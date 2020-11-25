@@ -48,20 +48,22 @@ void fade_in_out(SDL_Surface *screen, SDL_Surface *image, bool in_out) {
     alpha_end = 0;
     alpha_step = -2;
   }
-
+#ifdef PS3
+  alpha_step *= 4;
+#endif
   Uint32 color = SDL_MapRGBA(tmp_screen->format, 255, 255, 255, 255);
+  SDL_FillRect(tmp_screen, 0, color);
+  // get data
+  int bpp = tmp_screen->format->BytesPerPixel;
+  int pitch_padding = (tmp_screen->pitch - (bpp * tmp_screen->w));
   // loop
   for (int alpha = alpha_init; alpha != alpha_end; alpha += alpha_step) {
     // Draw the bitmap to the constructed virtual screen
-    SDL_FillRect(tmp_screen, 0, color);
-    SDL_BlitSurface(image, NULL, tmp_screen, &r);
 
+    SDL_BlitSurface(image, NULL, tmp_screen, &r);
 #ifdef PS3
     SDL_LockSurface(tmp_screen);
 
-    // get data
-    int bpp = tmp_screen->format->BytesPerPixel;
-    int pitch_padding = (tmp_screen->pitch - (bpp * tmp_screen->w));
     Uint8 *pixels = (Uint8 *)tmp_screen->pixels;
 // Big Endian will have an offset of 0, otherwise it's 3 (R, G and B)
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN

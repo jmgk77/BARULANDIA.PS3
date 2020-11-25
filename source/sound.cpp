@@ -1,61 +1,58 @@
 #include "sound.h"
 
-static Uint8 *audio_chunk, *audio_pos, *wavBuffer;
-static Uint32 audio_len;
+int do_effect_play(void *index) {
+  char buf[128];
+  snprintf(buf, 128, "%sSOUND%d.WAV", DATA_PATH, index);
+  dbglogger_printf("PLAYING: %s\n", buf);
 
-void fill_audio(void *udata, Uint8 *stream, int len) {
-  if (audio_len == 0)
-    return;
-  len = (len > audio_len ? audio_len : len);
-  SDL_MixAudio(stream, audio_pos, len, SDL_MIX_MAXVOLUME);
-  audio_pos += len;
-  audio_len -= len;
+  // mikmod
+  SAMPLE *wave = Sample_Load(buf);
+  if (!wave) {
+    dbglogger_printf("Could not load: %s\n", MikMod_strerror(MikMod_errno));
+    return 0;
+  }
+
+  int id = Sample_Play(wave, 0, SFX_CRITICAL);
+  Voice_SetVolume(id, 256);
+  do {
+    MikMod_Update();
+    SDL_Delay(10);
+  } while (!Voice_Stopped(id));
+
+  Sample_Free(wave);
+  return 0;
 }
 
 void effect_play(int index) {
-  char buf[MAX_STRING];
-  snprintf(buf, MAX_STRING, "%sSOUND%d.WAV", DATA_PATH, index);
-  dbglogger_printf("PLAYING: %s\n", buf);
+  SDL_Thread *thread = SDL_CreateThread(do_effect_play, (void *)index);
 
-  // pause and free
-  SDL_PauseAudio(1);
-  audio_len = 0;
-  SDL_FreeWAV(wavBuffer);
-
-  // load wav
-  SDL_AudioSpec wave;
-
-  SDL_AudioSpec *t = SDL_LoadWAV(buf, &wave, &audio_chunk, &audio_len);
-  // check wave.format becoz PS3 SDL dont report error
-  if ((t == NULL) || (!wave.format)) {
-    fprintf(stderr, "Could not open %s: %s\n", buf, SDL_GetError());
-    return;
+  if (thread == NULL) {
+    dbglogger_printf("SDL_CreateThread failed: %s\n", SDL_GetError());
   }
-  debug_audio_spec(&wave);
-
-  // play new audio
-  audio_pos = audio_chunk;
-
-  SDL_PauseAudio(0);
 }
 
 void sound_init() {
-  SDL_AudioSpec wanted;
+  dbglogger_printf("MikMod version %ld.%ld.%ld\n", LIBMIKMOD_VERSION_MAJOR,
+                   LIBMIKMOD_VERSION_MINOR, LIBMIKMOD_REVISION);
 
-  /* Set the audio format */
-  wanted.freq = 16000;
-  wanted.format = AUDIO_S16LSB;
-  wanted.channels = 1;   /* 1 = mono, 2 = stereo */
-  wanted.samples = 1024; /* Good low-latency value for callback */
-  wanted.callback = fill_audio;
-  wanted.userdata = NULL;
+  MikMod_InitThreads();
 
-  /* Open the audio device, forcing the desired format */
-  if (SDL_OpenAudio(&wanted, NULL) < 0) {
-    fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
+  MikMod_RegisterAllDrivers();
+  MikMod_RegisterAllLoaders();
+
+  char s[] = "";
+  if (MikMod_Init(s)) {
+    dbglogger_printf("Could not initialize sound: %s",
+                     MikMod_strerror(MikMod_errno));
+    sound_end();
+    return;
   }
-  debug_audio_spec(&wanted);
-  return;
+  MikMod_SetNumVoices(-1, 2);
+  MikMod_EnableOutput();
+  debug_audio();
 }
 
-void sound_end() { SDL_CloseAudio(); }
+void sound_end() {
+  MikMod_DisableOutput();
+  MikMod_Exit();
+}

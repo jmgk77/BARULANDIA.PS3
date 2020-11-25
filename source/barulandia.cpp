@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
     dbglogger_printf("TTF_OpenFont: %s\n", TTF_GetError());
     return -1;
   }
-  debug_font(font);
+  /*debug_font(font);*/
 
   // sdl sound init
   sound_init();
@@ -105,14 +105,14 @@ int main(int argc, char **argv) {
 
   // init screen
   screen = SDL_SetVideoMode(WIDTH, HEIGHT, 0,
-                            SDL_SWSURFACE | SDL_DOUBLEBUF /*| SDL_FULLSCREEN*/);
+                            SDL_SWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
   if (screen == NULL) {
     dbglogger_printf("SDL_SetVideoMode: %s", SDL_GetError());
     return -1;
   }
 
   // print info
-  debug_video();
+  /*debug_video();*/
 
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -222,7 +222,7 @@ int main(int argc, char **argv) {
     state[k] = j;                                                              \
   }
       case SDL_KEYDOWN:
-        debug_keyboard(&e.key);
+        /*debug_keyboard(&e.key);*/
         if (e.key.keysym.sym == SDLK_ESCAPE) {
           start_active = false;
         }
@@ -302,7 +302,7 @@ int main(int argc, char **argv) {
     // read joystick state
     if (joystick) {
       SDL_JoystickUpdate();
-      debug_joystick(joystick);
+      /*debug_joystick(joystick);*/
       for (int i = 0; i < JOYBUTTONS; ++i) {
         joystick_buttonstate[i] = SDL_JoystickGetButton(joystick, i);
       }
@@ -329,6 +329,7 @@ int main(int argc, char **argv) {
     case INTRO_MAIN: {
       // fade logo in and out
       fade_in_out(screen, logo, true);
+      effect_play(SOUND_LOGO);
       fade_in_out(screen, logo, false);
       PHASE = INTRO_END;
     } break;

@@ -1,6 +1,7 @@
 #include "debug.h"
 
 void debug_keyboard(SDL_KeyboardEvent *key) {
+#ifdef DEBUG
   if (key->type == SDL_KEYUP)
     dbglogger_printf("Release:-");
   else
@@ -79,9 +80,11 @@ void debug_joystick(SDL_Joystick *joystick) {
   LOG_BTN(SDL_CONTROLLER_BUTTON_R2);
   LOG_BTN(SDL_CONTROLLER_BUTTON_L2);
 #endif
+#endif
 }
 
 void debug_video() {
+#ifdef DEBUG
   const SDL_VideoInfo *vinfo = SDL_GetVideoInfo();
   /*
      typedef struct{
@@ -138,6 +141,7 @@ void debug_video() {
 #ifndef PS3
   dbglogger_printf("colorkey\t0x%x\nalpha\t\t0x%x\n", vinfo->vfmt->colorkey,
                    vinfo->vfmt->alpha);
+#endif
 #endif
 }
 
@@ -284,3 +288,10 @@ void debug_screenshot() {
 }
 #endif
 #endif
+
+void debug_audio() {
+#ifdef DEBUG
+  dbglogger_printf("Init %s\n", MikMod_InfoDriver());
+  dbglogger_printf("Loader %s\n", MikMod_InfoLoader());
+#endif
+}

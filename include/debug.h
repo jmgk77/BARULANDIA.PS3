@@ -2,7 +2,7 @@
 
 #include "barulandia.h"
 
-#define DBG_IP "192.168.0.11"
+#define DBG_IP "192.168.0.30"
 #define DBG_PORT "18194"
 
 #ifdef DEBUG
@@ -30,3 +30,4 @@ void debug_font(TTF_Font *font);
 void debug_audio();
 void debug_audio_spec(SDL_AudioSpec *a);
 void debug_screenshot();
+void debug_audio();

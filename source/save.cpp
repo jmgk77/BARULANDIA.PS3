@@ -23,11 +23,13 @@ int do_save_png(void *d) {
   SDL_Surface *in = (SDL_Surface *)d;
   SDL_Surface *out = SDL_CreateRGBSurface(
       0, content.w, content.h, in->format->BitsPerPixel, in->format->Rmask,
-      in->format->Gmask, in->format->Bmask, in->format->Amask);
+      in->format->Gmask, in->format->Bmask, 0);
   SDL_FillRect(out, NULL, SDL_MapRGBA(in->format, 255, 255, 255, 255));
   SDL_BlitSurface(in, &content, out, NULL);
 
-  SDL_SavePNG(out, buf);
+  SDL_Surface *tmp = SDL_PNGFormatAlpha(out);
+  SDL_SavePNG(tmp, buf);
+  SDL_FreeSurface(tmp);
 
   SDL_FreeSurface(out);
 

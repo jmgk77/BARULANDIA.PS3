@@ -26,9 +26,7 @@
 #define GRAPH_EXT ".PNG"
 
 #include <SDL/SDL.h>
-#include <SDL/SDL_audio.h>
 #include <SDL/SDL_image.h>
-#include <SDL/SDL_syswm.h>
 #include <SDL/SDL_ttf.h>
 
 #ifdef PS3
@@ -52,19 +50,20 @@
 #include "debug.h"
 #include "floodfill.h"
 #include "save.h"
+#include "savepng.h"
 #include "screen.h"
 #include "sdl_help.h"
 #include "sound.h"
 #include "video.h"
-#include "savepng.h"
 
 #include <bitset>
 #include <cmath>
 #include <dirent.h>
 #include <list>
+#include <mikmod.h>
+#include <png.h>
 #include <queue>
 #include <time.h>
-#include <png.h>
 
 using namespace std;
 
