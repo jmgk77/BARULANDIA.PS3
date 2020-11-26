@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
   dbglogger_printf("BARULANDIA for ps3 (c) jmgk 2020\n");
 
 #ifdef DEBUG
+  dbglogger_failsafe("5555");
   atexit(ret2psload);
 #endif
   atexit(cleanup);

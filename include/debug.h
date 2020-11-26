@@ -12,6 +12,7 @@
 #define dbglogger_printf printf
 #define dbglogger_printf printf
 #define dbglogger_screenshot_tmp(x) /*debug_screenshot()*/
+#define dbglogger_failsafe(x)
 #endif
 #else
 #define dbglogger_init_str(x)
