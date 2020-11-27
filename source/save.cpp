@@ -14,10 +14,10 @@ int do_save_png(void *d) {
   dbglogger_printf("THREAD SAVING: %s\n", buf);
 
   SDL_Rect content;
-  content.x = (WIDTH - 576) / 2;
+  content.x = (WIDTH - DRAW_W) / 2;
   content.y = 0;
-  content.w = 576;
-  content.h = 720;
+  content.w = DRAW_W;
+  content.h = DRAW_H;
 
   // avoid lots of casts...
   SDL_Surface *in = (SDL_Surface *)d;
